@@ -36,7 +36,7 @@ const Login = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@rongaielite.ac.ke" />
+              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@adamsjunior.ac.ke" />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
