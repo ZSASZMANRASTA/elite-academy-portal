@@ -11,7 +11,7 @@ const Footer = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
                 <GraduationCap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-display text-lg font-bold">Rongai Elite Academy</span>
+              <span className="font-display text-lg font-bold">Adam's Junior Academy</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Nurturing future leaders through excellence in education, character, and innovation.
