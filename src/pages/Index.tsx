@@ -16,7 +16,7 @@ const Index = () => {
               Excellence in Education
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-lg text-card/90 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              Rongai Elite Academy — nurturing tomorrow's leaders through academic rigour, character, and innovation.
+              Adam's Junior Academy — nurturing tomorrow's leaders through academic rigour, character, and innovation.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <Button size="lg" variant="accent" asChild>
