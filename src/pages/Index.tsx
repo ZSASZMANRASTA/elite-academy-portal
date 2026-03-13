@@ -42,7 +42,7 @@ const Index = () => {
 
       {/* Why Choose Us */}
       <section className="container py-20">
-        <h2 className="text-center font-display text-3xl font-bold">Why Rongai Elite Academy?</h2>
+        <h2 className="text-center font-display text-3xl font-bold">Why Adam's Junior Academy?</h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
           We combine academic excellence with holistic development to prepare students for success in a rapidly changing world.
         </p>
