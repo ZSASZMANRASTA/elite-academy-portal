@@ -33,7 +33,7 @@ const Footer = () => {
             <h4 className="font-display font-semibold mb-3">Contact</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <span className="flex items-center gap-2"><Phone className="h-4 w-4" /> +254 700 123 456</span>
-              <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> info@rongaielite.ac.ke</span>
+              <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> info@adamsjunior.ac.ke</span>
               <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Saina, Kajiado Central, Kajiado County</span>
             </div>
           </div>
