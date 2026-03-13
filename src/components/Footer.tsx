@@ -49,7 +49,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Rongai Elite Academy. All rights reserved.
+          © {new Date().getFullYear()} Adam's Junior Academy. All rights reserved.
         </div>
       </div>
     </footer>

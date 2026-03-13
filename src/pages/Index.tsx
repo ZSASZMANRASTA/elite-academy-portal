@@ -66,7 +66,7 @@ const Index = () => {
       {/* CTA */}
       <section className="bg-primary py-16">
         <div className="container text-center">
-          <h2 className="font-display text-3xl font-bold text-primary-foreground">Ready to Join Rongai Elite Academy?</h2>
+          <h2 className="font-display text-3xl font-bold text-primary-foreground">Ready to Join Adam's Junior Academy?</h2>
           <p className="mx-auto mt-3 max-w-lg text-primary-foreground/80">
             Applications are now open for the next academic year. Take the first step toward an exceptional education.
           </p>
