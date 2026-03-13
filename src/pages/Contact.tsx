@@ -35,7 +35,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-display font-semibold">Address</h3>
-                <p className="text-sm text-muted-foreground">Rongai Town, Kajiado County, Kenya</p>
+                <p className="text-sm text-muted-foreground">Saina, Kajiado Central, Kajiado County, Kenya</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
