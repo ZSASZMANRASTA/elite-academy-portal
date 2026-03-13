@@ -29,14 +29,14 @@ const Login = () => {
             <GraduationCap className="h-7 w-7 text-primary-foreground" />
           </div>
           <h1 className="mt-4 font-display text-2xl font-bold">Welcome Back</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Sign in to your Rongai Elite account</p>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to your Adam's Junior account</p>
         </div>
 
         <div className="mt-8 rounded-lg border border-border bg-card p-8 shadow-sm">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@rongaielite.ac.ke" />
+              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@adamsjunior.ac.ke" />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>

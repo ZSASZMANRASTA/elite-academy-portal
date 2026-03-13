@@ -16,7 +16,7 @@ const Index = () => {
               Excellence in Education
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-lg text-card/90 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-              Rongai Elite Academy — nurturing tomorrow's leaders through academic rigour, character, and innovation.
+              Adam's Junior Academy — nurturing tomorrow's leaders through academic rigour, character, and innovation.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <Button size="lg" variant="accent" asChild>
@@ -42,7 +42,7 @@ const Index = () => {
 
       {/* Why Choose Us */}
       <section className="container py-20">
-        <h2 className="text-center font-display text-3xl font-bold">Why Rongai Elite Academy?</h2>
+        <h2 className="text-center font-display text-3xl font-bold">Why Adam's Junior Academy?</h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
           We combine academic excellence with holistic development to prepare students for success in a rapidly changing world.
         </p>
@@ -66,7 +66,7 @@ const Index = () => {
       {/* CTA */}
       <section className="bg-primary py-16">
         <div className="container text-center">
-          <h2 className="font-display text-3xl font-bold text-primary-foreground">Ready to Join Rongai Elite Academy?</h2>
+          <h2 className="font-display text-3xl font-bold text-primary-foreground">Ready to Join Adam's Junior Academy?</h2>
           <p className="mx-auto mt-3 max-w-lg text-primary-foreground/80">
             Applications are now open for the next academic year. Take the first step toward an exceptional education.
           </p>

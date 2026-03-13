@@ -23,7 +23,7 @@ const Contact = () => {
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">Contact Us</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Get in touch with Rongai Elite Academy. We'd love to hear from you.
+        Get in touch with Adam's Junior Academy. We'd love to hear from you.
       </p>
 
       <div className="mt-12 grid gap-12 lg:grid-cols-2">
@@ -35,7 +35,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-display font-semibold">Address</h3>
-                <p className="text-sm text-muted-foreground">Rongai Town, Kajiado County, Kenya</p>
+                <p className="text-sm text-muted-foreground">Saina, Kajiado Central, Kajiado County, Kenya</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -53,7 +53,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-display font-semibold">Email</h3>
-                <p className="text-sm text-muted-foreground">info@rongaielite.ac.ke</p>
+                <p className="text-sm text-muted-foreground">info@adamsjunior.ac.ke</p>
               </div>
             </div>
           </div>
@@ -61,7 +61,7 @@ const Contact = () => {
           {/* Map */}
           <div className="mt-8 overflow-hidden rounded-lg border border-border">
             <iframe
-              title="Rongai Elite Academy Location"
+              title="Adam's Junior Academy Location"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15955.42!2d36.7!3d-1.4!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMcKwMjQnMDAuMCJTIDM2wrA0MicwMC4wIkU!5e0!3m2!1sen!2ske!4v1"
               width="100%"
               height="280"

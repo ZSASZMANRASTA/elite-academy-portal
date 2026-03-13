@@ -16,7 +16,7 @@ const Gallery = () => {
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">Gallery</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        A glimpse into life at Rongai Elite Academy.
+        A glimpse into life at Adam's Junior Academy.
       </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {photos.map((photo, i) => (

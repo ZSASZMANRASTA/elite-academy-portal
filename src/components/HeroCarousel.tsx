@@ -4,7 +4,7 @@ import heroLab from "@/assets/hero-lab.jpg";
 import heroSports from "@/assets/hero-sports.jpg";
 
 const slides = [
-  { src: heroSchool, alt: "Rongai Elite Academy campus" },
+  { src: heroSchool, alt: "Adam's Junior Academy campus" },
   { src: heroLab, alt: "Students in science laboratory" },
   { src: heroSports, alt: "Students playing sports" },
 ];

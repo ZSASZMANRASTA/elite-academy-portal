@@ -12,7 +12,7 @@ const About = () => {
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">About Us</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Rongai Elite Academy is a premier secondary school in Kajiado County, committed to holistic education since 2009.
+        Adam's Junior Academy is a premier school in Saina, Kajiado Central, committed to holistic education since 2009.
       </p>
 
       <div className="mt-12 grid gap-6 md:grid-cols-2">

@@ -29,7 +29,7 @@ const Admissions = () => {
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">Admissions</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Join the Rongai Elite family. We welcome applications from motivated students ready to excel.
+        Join the Adam's Junior family. We welcome applications from motivated students ready to excel.
       </p>
 
       <div className="mt-12 grid gap-12 lg:grid-cols-2">
