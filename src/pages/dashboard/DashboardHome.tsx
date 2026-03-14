@@ -1,0 +1,177 @@
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, Users, Trophy, Clock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const DashboardHome = () => {
+  const { user, profile, role } = useAuth();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      if (role === "student") {
+        const [enrollments, attempts] = await Promise.all([
+          supabase.from("enrollments").select("id, course_id, courses(title)").eq("student_id", user.id),
+          supabase.from("quiz_attempts").select("score, total_questions, completed_at").eq("student_id", user.id).order("completed_at", { ascending: false }).limit(5),
+        ]);
+        setStats({
+          enrolledCourses: enrollments.data?.length ?? 0,
+          recentQuizzes: attempts.data ?? [],
+        });
+      } else if (role === "teacher") {
+        const [courses, enrollments] = await Promise.all([
+          supabase.from("courses").select("id").eq("teacher_id", user.id),
+          supabase.from("enrollments").select("id"),
+        ]);
+        setStats({
+          totalCourses: courses.data?.length ?? 0,
+          totalStudents: enrollments.data?.length ?? 0,
+        });
+      } else if (role === "admin") {
+        const [profiles, courses, enrollments] = await Promise.all([
+          supabase.from("profiles").select("id"),
+          supabase.from("courses").select("id"),
+          supabase.from("enrollments").select("id"),
+        ]);
+        setStats({
+          totalUsers: profiles.data?.length ?? 0,
+          totalCourses: courses.data?.length ?? 0,
+          totalEnrollments: enrollments.data?.length ?? 0,
+        });
+      }
+      setLoading(false);
+    };
+    load();
+  }, [user, role]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32" />)}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-2xl font-bold">
+          Welcome, {profile?.full_name || "User"} 👋
+        </h1>
+        <p className="text-muted-foreground capitalize">{role} Dashboard</p>
+      </div>
+
+      {role === "student" && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Enrolled Courses</CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.enrolledCourses}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Quizzes Taken</CardTitle>
+                <Trophy className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.recentQuizzes?.length ?? 0}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {stats?.recentQuizzes?.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Recent Quiz Scores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {stats.recentQuizzes.map((attempt: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg border border-border p-3">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{new Date(attempt.completed_at).toLocaleDateString()}</span>
+                      </div>
+                      <span className="font-semibold text-primary">
+                        {attempt.score}/{attempt.total_questions}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+
+      {role === "teacher" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">My Courses</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.totalCourses}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.totalStudents}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {role === "admin" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.totalUsers}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.totalCourses}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Enrollments</CardTitle>
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.totalEnrollments}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DashboardHome;
