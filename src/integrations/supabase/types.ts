@@ -14,6 +14,91 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_submissions: {
+        Row: {
+          assignment_id: string
+          file_url: string | null
+          grade: string | null
+          id: string
+          student_id: string
+          submitted_at: string
+          teacher_feedback: string | null
+          text_response: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          file_url?: string | null
+          grade?: string | null
+          id?: string
+          student_id: string
+          submitted_at?: string
+          teacher_feedback?: string | null
+          text_response?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          file_url?: string | null
+          grade?: string | null
+          id?: string
+          student_id?: string
+          submitted_at?: string
+          teacher_feedback?: string | null
+          text_response?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          teacher_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           cover_image: string | null
@@ -228,6 +313,38 @@ export type Database = {
             columns: ["quiz_id"]
             isOneToOne: false
             referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_feedback: {
+        Row: {
+          attempt_id: string
+          created_at: string
+          feedback: string
+          id: string
+          teacher_id: string
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string
+          feedback: string
+          id?: string
+          teacher_id: string
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string
+          feedback?: string
+          id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_feedback_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_attempts"
             referencedColumns: ["id"]
           },
         ]
