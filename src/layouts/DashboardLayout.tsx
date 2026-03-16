@@ -21,9 +21,11 @@ const DashboardLayout = () => {
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["student", "teacher", "admin"] },
     { label: "Courses", href: "/dashboard/courses", icon: BookOpen, roles: ["student", "teacher", "admin"] },
+    { label: "Materials", href: "/dashboard/materials", icon: BookOpen, roles: ["student", "teacher", "admin"] },
+    { label: "Quizzes", href: "/dashboard/quizzes", icon: BarChart3, roles: ["teacher", "admin"] },
+    { label: "Assignments", href: "/dashboard/assignments", icon: Settings, roles: ["student", "teacher", "admin"] },
     { label: "Users", href: "/dashboard/users", icon: Users, roles: ["admin"] },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin", "teacher"] },
-    { label: "Settings", href: "/dashboard/settings", icon: Settings, roles: ["admin"] },
   ];
 
   const filteredNav = navItems.filter((item) => role && item.roles.includes(role));
