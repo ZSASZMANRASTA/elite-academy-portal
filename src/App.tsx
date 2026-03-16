@@ -18,6 +18,11 @@ import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import CoursesPage from "./pages/dashboard/CoursesPage";
+import QuizManagePage from "./pages/dashboard/QuizManagePage";
+import MaterialsPage from "./pages/dashboard/MaterialsPage";
+import AssignmentsPage from "./pages/dashboard/AssignmentsPage";
+import UsersPage from "./pages/dashboard/UsersPage";
+import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +55,11 @@ const App = () => (
             >
               <Route path="/dashboard" element={<DashboardHome />} />
               <Route path="/dashboard/courses" element={<CoursesPage />} />
+              <Route path="/dashboard/quizzes" element={<QuizManagePage />} />
+              <Route path="/dashboard/materials" element={<MaterialsPage />} />
+              <Route path="/dashboard/assignments" element={<AssignmentsPage />} />
+              <Route path="/dashboard/users" element={<UsersPage />} />
+              <Route path="/dashboard/analytics" element={<AnalyticsPage />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
