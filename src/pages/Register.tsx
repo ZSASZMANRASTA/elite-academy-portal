@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"student" | "teacher">("student");
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +24,7 @@ const Register = () => {
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: fullName, role },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -32,7 +34,7 @@ const Register = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Account created! Check your email to verify, then sign in.");
+      toast.success("Account created! You can now sign in.");
       navigate("/login");
     }
   };
@@ -51,19 +53,32 @@ const Register = () => {
         <div className="mt-8 rounded-lg border border-border bg-card p-8 shadow-sm">
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
+              <Label className="mb-2 block">I am a</Label>
+              <RadioGroup value={role} onValueChange={(v) => setRole(v as "student" | "teacher")} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="student" id="student" />
+                  <Label htmlFor="student" className="cursor-pointer font-normal">Student</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="teacher" id="teacher" />
+                  <Label htmlFor="teacher" className="cursor-pointer font-normal">Teacher</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            <div>
               <Label htmlFor="fullName">Full Name</Label>
               <Input id="fullName" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@adamsjunior.ac.ke" />
+              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={role === "student" ? "student@adamsjunior.ac.ke" : "teacher@adamsjunior.ac.ke"} />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account…" : "Create Account"}
+              {loading ? "Creating account…" : `Create ${role === "student" ? "Student" : "Teacher"} Account`}
             </Button>
           </form>
 
