@@ -5,24 +5,50 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
 const CoursesPage = () => {
   const { user, role } = useAuth();
   const [courses, setCourses] = useState<Tables<"courses">[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ title: "", description: "", subject: "", published: false });
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("courses")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setCourses(data ?? []);
-      setLoading(false);
-    };
-    load();
-  }, []);
+  const loadCourses = async () => {
+    const { data } = await supabase
+      .from("courses")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setCourses(data ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadCourses(); }, []);
+
+  const handleCreate = async () => {
+    if (!form.title.trim() || !user) return;
+    setSaving(true);
+    const { error } = await supabase.from("courses").insert({
+      title: form.title,
+      description: form.description || null,
+      subject: form.subject || null,
+      published: form.published,
+      teacher_id: user.id,
+    });
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Course created!");
+    setForm({ title: "", description: "", subject: "", published: false });
+    setDialogOpen(false);
+    loadCourses();
+  };
 
   if (loading) {
     return (
@@ -40,9 +66,39 @@ const CoursesPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold">Courses</h1>
         {(role === "teacher" || role === "admin") && (
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" /> New Course
-          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" /> New Course
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Course</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <Input id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Mathematics Form 1" />
+                </div>
+                <div>
+                  <Label htmlFor="subject">Subject</Label>
+                  <Input id="subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="e.g. Mathematics" />
+                </div>
+                <div>
+                  <Label htmlFor="desc">Description</Label>
+                  <Textarea id="desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Course description..." rows={3} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="published">Publish immediately</Label>
+                  <Switch id="published" checked={form.published} onCheckedChange={(v) => setForm({ ...form, published: v })} />
+                </div>
+                <Button className="w-full" onClick={handleCreate} disabled={saving || !form.title.trim()}>
+                  {saving ? "Creating…" : "Create Course"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
 
@@ -71,7 +127,6 @@ const CoursesPage = () => {
                   <span className={`text-xs font-medium ${course.published ? "text-green-600" : "text-muted-foreground"}`}>
                     {course.published ? "Published" : "Draft"}
                   </span>
-                  <Button variant="outline" size="sm">View</Button>
                 </div>
               </CardContent>
             </Card>

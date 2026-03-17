@@ -3,7 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { GraduationCap, ShieldCheck, BookOpen, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +13,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState<string>("student");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +43,12 @@ const Login = () => {
     else toast.success("Password reset link sent to your email");
   };
 
+  const roleInfo = [
+    { value: "student", label: "Student", icon: BookOpen, desc: "Access courses, quizzes & assignments" },
+    { value: "teacher", label: "Teacher", icon: Users, desc: "Manage courses, materials & grading" },
+    { value: "admin", label: "Admin", icon: ShieldCheck, desc: "Full access — users, analytics & oversight" },
+  ];
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
@@ -53,7 +61,32 @@ const Login = () => {
         </div>
 
         <div className="mt-8 rounded-lg border border-border bg-card p-8 shadow-sm">
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Role indicator */}
+            <div>
+              <Label className="mb-2 block">I am signing in as</Label>
+              <RadioGroup value={selectedRole} onValueChange={setSelectedRole} className="grid grid-cols-3 gap-2">
+                {roleInfo.map((r) => (
+                  <label
+                    key={r.value}
+                    htmlFor={`role-${r.value}`}
+                    className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-colors ${
+                      selectedRole === r.value
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <RadioGroupItem value={r.value} id={`role-${r.value}`} className="sr-only" />
+                    <r.icon className="h-5 w-5" />
+                    <span className="text-xs font-medium">{r.label}</span>
+                  </label>
+                ))}
+              </RadioGroup>
+              <p className="mt-1.5 text-xs text-muted-foreground text-center">
+                {roleInfo.find((r) => r.value === selectedRole)?.desc}
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@adamsjunior.ac.ke" />
@@ -68,7 +101,7 @@ const Login = () => {
               </button>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? "Signing in…" : `Sign In as ${roleInfo.find((r) => r.value === selectedRole)?.label}`}
             </Button>
           </form>
 
