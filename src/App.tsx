@@ -23,6 +23,7 @@ import MaterialsPage from "./pages/dashboard/MaterialsPage";
 import AssignmentsPage from "./pages/dashboard/AssignmentsPage";
 import UsersPage from "./pages/dashboard/UsersPage";
 import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
+import QuizTakePage from "./pages/dashboard/QuizTakePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
