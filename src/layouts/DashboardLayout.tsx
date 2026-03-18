@@ -3,12 +3,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, LogOut,
-  Menu, X, BarChart3, Settings, PenTool, ClipboardList
+  Menu, X, BarChart3, Settings, PenTool, ClipboardList, Eye
 } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const DashboardLayout = () => {
-  const { profile, role, signOut } = useAuth();
+  const { profile, role, actualRole, isImpersonating, signOut, setImpersonatedRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
