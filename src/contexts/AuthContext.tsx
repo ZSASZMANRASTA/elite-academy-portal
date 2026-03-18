@@ -10,8 +10,11 @@ interface AuthContextType {
   user: User | null;
   profile: { full_name: string; class: string | null; subject: string | null; approved: boolean } | null;
   role: AppRole | null;
+  actualRole: AppRole | null;
+  isImpersonating: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
+  setImpersonatedRole: (role: AppRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
