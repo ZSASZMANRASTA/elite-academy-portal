@@ -82,9 +82,6 @@ const Login = () => {
                   </label>
                 ))}
               </RadioGroup>
-              <p className="mt-1.5 text-xs text-muted-foreground text-center">
-                {roleInfo.find((r) => r.value === selectedRole)?.desc}
-              </p>
             </div>
 
             <div>
