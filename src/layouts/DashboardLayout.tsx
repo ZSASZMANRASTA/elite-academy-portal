@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, LogOut,
-  Menu, X, BarChart3, Settings
+  Menu, X, BarChart3, Settings, PenTool, ClipboardList
 } from "lucide-react";
 import { useState } from "react";
 
