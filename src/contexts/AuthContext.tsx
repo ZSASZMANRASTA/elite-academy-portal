@@ -10,8 +10,11 @@ interface AuthContextType {
   user: User | null;
   profile: { full_name: string; class: string | null; subject: string | null; approved: boolean } | null;
   role: AppRole | null;
+  actualRole: AppRole | null;
+  isImpersonating: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
+  setImpersonatedRole: (role: AppRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,8 +22,11 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   role: null,
+  actualRole: null,
+  isImpersonating: false,
   loading: true,
   signOut: async () => {},
+  setImpersonatedRole: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -30,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [role, setRole] = useState<AppRole | null>(null);
+  const [impersonatedRole, setImpersonatedRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfileAndRole = async (userId: string) => {
@@ -38,7 +45,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       supabase.rpc("get_user_role", { _user_id: userId }),
     ]);
     if (profileRes.data) setProfile(profileRes.data);
-    if (roleRes.data) setRole(roleRes.data);
+    if (roleRes.data) {
+      setRole(roleRes.data);
+      // If admin, check for login-time role selection
+      if (roleRes.data === "admin") {
+        const selected = sessionStorage.getItem("selected_login_role") as AppRole | null;
+        if (selected && ["student", "teacher", "admin"].includes(selected)) {
+          setImpersonatedRole(selected);
+        }
+      } else {
+        setImpersonatedRole(null);
+      }
+    }
   };
 
   useEffect(() => {
@@ -71,14 +89,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    sessionStorage.removeItem("selected_login_role");
     setSession(null);
     setUser(null);
     setProfile(null);
     setRole(null);
+    setImpersonatedRole(null);
   };
 
+  const handleSetImpersonatedRole = (newRole: AppRole) => {
+    sessionStorage.setItem("selected_login_role", newRole);
+    setImpersonatedRole(newRole);
+  };
+
+  const effectiveRole = role === "admin" && impersonatedRole ? impersonatedRole : role;
+  const isImpersonating = role === "admin" && impersonatedRole !== null && impersonatedRole !== "admin";
+
   return (
-    <AuthContext.Provider value={{ session, user, profile, role, loading, signOut }}>
+    <AuthContext.Provider value={{
+      session, user, profile,
+      role: effectiveRole,
+      actualRole: role,
+      isImpersonating,
+      loading, signOut,
+      setImpersonatedRole: handleSetImpersonatedRole,
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,12 +3,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, LogOut,
-  Menu, X, BarChart3, Settings, PenTool, ClipboardList
+  Menu, X, BarChart3, Settings, PenTool, ClipboardList, Eye
 } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const DashboardLayout = () => {
-  const { profile, role, signOut } = useAuth();
+  const { profile, role, actualRole, isImpersonating, signOut, setImpersonatedRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,10 +72,29 @@ const DashboardLayout = () => {
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4">
-          <div className="mb-3 px-1">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4 space-y-3">
+          {actualRole === "admin" && (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Eye className="h-3 w-3" /> Viewing as
+              </div>
+              <Select value={role ?? "admin"} onValueChange={(v) => setImpersonatedRole(v as any)}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="teacher">Teacher</SelectItem>
+                  <SelectItem value="student">Student</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="px-1">
             <p className="text-sm font-medium truncate">{profile?.full_name || "User"}</p>
-            <p className="text-xs text-muted-foreground capitalize">{role}</p>
+            <p className="text-xs text-muted-foreground capitalize">
+              {actualRole}{isImpersonating && ` → ${role}`}
+            </p>
           </div>
           <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleSignOut}>
             <LogOut className="h-4 w-4" /> Sign Out
