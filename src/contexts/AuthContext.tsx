@@ -45,7 +45,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       supabase.rpc("get_user_role", { _user_id: userId }),
     ]);
     if (profileRes.data) setProfile(profileRes.data);
-    if (roleRes.data) setRole(roleRes.data);
+    if (roleRes.data) {
+      setRole(roleRes.data);
+      // If admin, check for login-time role selection
+      if (roleRes.data === "admin") {
+        const selected = sessionStorage.getItem("selected_login_role") as AppRole | null;
+        if (selected && ["student", "teacher", "admin"].includes(selected)) {
+          setImpersonatedRole(selected);
+        }
+      } else {
+        setImpersonatedRole(null);
+      }
+    }
   };
 
   useEffect(() => {
