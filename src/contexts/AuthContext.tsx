@@ -89,11 +89,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    sessionStorage.removeItem("selected_login_role");
     setSession(null);
     setUser(null);
     setProfile(null);
     setRole(null);
+    setImpersonatedRole(null);
   };
+
+  const handleSetImpersonatedRole = (newRole: AppRole) => {
+    sessionStorage.setItem("selected_login_role", newRole);
+    setImpersonatedRole(newRole);
+  };
+
+  const effectiveRole = role === "admin" && impersonatedRole ? impersonatedRole : role;
+  const isImpersonating = role === "admin" && impersonatedRole !== null && impersonatedRole !== "admin";
 
   return (
     <AuthContext.Provider value={{ session, user, profile, role, loading, signOut }}>
