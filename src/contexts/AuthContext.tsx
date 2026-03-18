@@ -106,7 +106,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isImpersonating = role === "admin" && impersonatedRole !== null && impersonatedRole !== "admin";
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, role, loading, signOut }}>
+    <AuthContext.Provider value={{
+      session, user, profile,
+      role: effectiveRole,
+      actualRole: role,
+      isImpersonating,
+      loading, signOut,
+      setImpersonatedRole: handleSetImpersonatedRole,
+    }}>
       {children}
     </AuthContext.Provider>
   );

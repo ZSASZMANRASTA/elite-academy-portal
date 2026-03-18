@@ -26,6 +26,8 @@ const Login = () => {
     if (error) {
       toast.error(error.message);
     } else {
+      // Store selected role for admin impersonation
+      sessionStorage.setItem("selected_login_role", selectedRole);
       toast.success("Welcome back!");
       navigate("/dashboard");
     }
