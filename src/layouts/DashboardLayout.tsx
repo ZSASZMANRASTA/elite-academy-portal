@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, LogOut,
-  Menu, X, BarChart3, Settings
+  Menu, X, BarChart3, Settings, PenTool, ClipboardList
 } from "lucide-react";
 import { useState } from "react";
 
@@ -22,7 +22,8 @@ const DashboardLayout = () => {
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["student", "teacher", "admin"] },
     { label: "Courses", href: "/dashboard/courses", icon: BookOpen, roles: ["student", "teacher", "admin"] },
     { label: "Materials", href: "/dashboard/materials", icon: BookOpen, roles: ["student", "teacher", "admin"] },
-    { label: "Quizzes", href: "/dashboard/quizzes", icon: BarChart3, roles: ["teacher", "admin"] },
+    { label: "Take Quiz", href: "/dashboard/take-quiz", icon: PenTool, roles: ["student"] },
+    { label: "Manage Quizzes", href: "/dashboard/quizzes", icon: ClipboardList, roles: ["teacher", "admin"] },
     { label: "Assignments", href: "/dashboard/assignments", icon: Settings, roles: ["student", "teacher", "admin"] },
     { label: "Users", href: "/dashboard/users", icon: Users, roles: ["admin"] },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin", "teacher"] },
