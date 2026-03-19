@@ -24,6 +24,8 @@ import AssignmentsPage from "./pages/dashboard/AssignmentsPage";
 import UsersPage from "./pages/dashboard/UsersPage";
 import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
 import QuizTakePage from "./pages/dashboard/QuizTakePage";
+import AnnouncementsPage from "./pages/dashboard/AnnouncementsPage";
+import EmailListPage from "./pages/dashboard/EmailListPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
