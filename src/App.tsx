@@ -24,6 +24,8 @@ import AssignmentsPage from "./pages/dashboard/AssignmentsPage";
 import UsersPage from "./pages/dashboard/UsersPage";
 import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
 import QuizTakePage from "./pages/dashboard/QuizTakePage";
+import AnnouncementsPage from "./pages/dashboard/AnnouncementsPage";
+import EmailListPage from "./pages/dashboard/EmailListPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +64,8 @@ const App = () => (
               <Route path="/dashboard/users" element={<UsersPage />} />
               <Route path="/dashboard/analytics" element={<AnalyticsPage />} />
               <Route path="/dashboard/take-quiz" element={<QuizTakePage />} />
+              <Route path="/dashboard/announcements" element={<AnnouncementsPage />} />
+              <Route path="/dashboard/email-list" element={<EmailListPage />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

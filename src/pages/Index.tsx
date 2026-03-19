@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import HeroCarousel from "@/components/HeroCarousel";
 import StatsCard from "@/components/StatsCard";
+import HomepageAnnouncements from "@/components/HomepageAnnouncements";
+import NewsletterSignup from "@/components/NewsletterSignup";
+import ParentContactForm from "@/components/ParentContactForm";
 import { Users, Trophy, BookOpen, Award } from "lucide-react";
 
 const Index = () => {
@@ -92,6 +95,15 @@ const Index = () => {
           ))}
         </div>
       </section>
+
+      {/* Announcements */}
+      <HomepageAnnouncements />
+
+      {/* Newsletter Signup */}
+      <NewsletterSignup />
+
+      {/* Parent Contact Form */}
+      <ParentContactForm />
 
       {/* CTA */}
       <section className="bg-primary py-16">

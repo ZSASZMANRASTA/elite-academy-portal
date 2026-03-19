@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          priority: string
+          published: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          priority?: string
+          published?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          priority?: string
+          published?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assignment_submissions: {
         Row: {
           assignment_id: string
@@ -242,6 +275,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      newsletter_subscribers: {
+        Row: {
+          active: boolean
+          email: string
+          id: string
+          subscribed_at: string
+        }
+        Insert: {
+          active?: boolean
+          email: string
+          id?: string
+          subscribed_at?: string
+        }
+        Update: {
+          active?: boolean
+          email?: string
+          id?: string
+          subscribed_at?: string
+        }
+        Relationships: []
+      }
+      parent_contacts: {
+        Row: {
+          child_grade: string | null
+          child_name: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          parent_name: string
+          phone: string | null
+        }
+        Insert: {
+          child_grade?: string | null
+          child_name?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          parent_name: string
+          phone?: string | null
+        }
+        Update: {
+          child_grade?: string | null
+          child_name?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          parent_name?: string
+          phone?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
