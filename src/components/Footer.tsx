@@ -14,7 +14,7 @@ const Footer = () => {
               <span className="font-display text-lg font-bold">Adam's Junior Academy</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Nurturing future leaders through excellence in education, character, and innovation.
+              A CBC Comprehensive School nurturing learners from Kindergarten through Grade 9 JSS in Saina, Kajiado Central.
             </p>
           </div>
 
