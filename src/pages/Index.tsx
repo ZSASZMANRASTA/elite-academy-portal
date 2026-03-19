@@ -96,6 +96,15 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Announcements */}
+      <HomepageAnnouncements />
+
+      {/* Newsletter Signup */}
+      <NewsletterSignup />
+
+      {/* Parent Contact Form */}
+      <ParentContactForm />
+
       {/* CTA */}
       <section className="bg-primary py-16">
         <div className="container text-center">

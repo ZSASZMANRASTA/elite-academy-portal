@@ -27,7 +27,9 @@ const DashboardLayout = () => {
     { label: "Take Quiz", href: "/dashboard/take-quiz", icon: PenTool, roles: ["student"] },
     { label: "Manage Quizzes", href: "/dashboard/quizzes", icon: ClipboardList, roles: ["teacher", "admin"] },
     { label: "Assignments", href: "/dashboard/assignments", icon: Settings, roles: ["student", "teacher", "admin"] },
+    { label: "Announcements", href: "/dashboard/announcements", icon: Megaphone, roles: ["student", "teacher", "admin"] },
     { label: "Users", href: "/dashboard/users", icon: Users, roles: ["admin"] },
+    { label: "Email List", href: "/dashboard/email-list", icon: Mail, roles: ["admin"] },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin", "teacher"] },
   ];
 
