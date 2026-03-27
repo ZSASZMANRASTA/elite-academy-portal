@@ -171,7 +171,4 @@ const NotificationsPage = () => {
   );
 };
 
-// Need cn import
-import { cn } from "@/lib/utils";
-
 export default NotificationsPage;
