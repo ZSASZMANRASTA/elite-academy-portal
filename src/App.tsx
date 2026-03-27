@@ -26,6 +26,11 @@ import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
 import QuizTakePage from "./pages/dashboard/QuizTakePage";
 import AnnouncementsPage from "./pages/dashboard/AnnouncementsPage";
 import EmailListPage from "./pages/dashboard/EmailListPage";
+import ClassesPage from "./pages/dashboard/ClassesPage";
+import AttendancePage from "./pages/dashboard/AttendancePage";
+import FinancePage from "./pages/dashboard/FinancePage";
+import NotificationsPage from "./pages/dashboard/NotificationsPage";
+import ProgressPage from "./pages/dashboard/ProgressPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +71,19 @@ const App = () => (
               <Route path="/dashboard/take-quiz" element={<QuizTakePage />} />
               <Route path="/dashboard/announcements" element={<AnnouncementsPage />} />
               <Route path="/dashboard/email-list" element={<EmailListPage />} />
+              <Route path="/dashboard/classes" element={<ClassesPage />} />
+              <Route path="/dashboard/attendance" element={<AttendancePage />} />
+              <Route path="/dashboard/finance" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <FinancePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+              <Route path="/dashboard/progress" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProgressPage />
+                </ProtectedRoute>
+              } />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

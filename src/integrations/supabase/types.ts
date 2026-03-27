@@ -132,6 +132,94 @@ export type Database = {
           },
         ]
       }
+      attendance: {
+        Row: {
+          class_id: string
+          created_at: string
+          date: string
+          id: string
+          marked_by: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          date: string
+          id?: string
+          marked_by: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          marked_by?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_enrollments: {
+        Row: {
+          class_id: string
+          enrolled_at: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          class_id: string
+          enrolled_at?: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          class_id?: string
+          enrolled_at?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          teacher_id?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           cover_image: string | null
@@ -294,6 +382,39 @@ export type Database = {
           email?: string
           id?: string
           subscribed_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read_by: string[]
+          sender_id: string
+          target_role: string
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read_by?: string[]
+          sender_id: string
+          target_role?: string
+          title: string
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read_by?: string[]
+          sender_id?: string
+          target_role?: string
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
         }
         Relationships: []
       }
@@ -549,6 +670,8 @@ export type Database = {
     }
     Enums: {
       app_role: "student" | "teacher" | "admin"
+      attendance_status: "present" | "absent" | "late"
+      notification_type: "fee" | "quiz" | "general"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -677,6 +800,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["student", "teacher", "admin"],
+      attendance_status: ["present", "absent", "late"],
+      notification_type: ["fee", "quiz", "general"],
     },
   },
 } as const

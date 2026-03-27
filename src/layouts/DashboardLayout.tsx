@@ -1,19 +1,41 @@
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   GraduationCap, LayoutDashboard, BookOpen, Users, LogOut,
-  Menu, X, BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail
+  Menu, BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail,
+  School, CalendarCheck, DollarSign, Bell, TrendingUp
 } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const DashboardLayout = () => {
-  const { profile, role, actualRole, isImpersonating, signOut, setImpersonatedRole } = useAuth();
+  const { user, profile, role, actualRole, isImpersonating, signOut, setImpersonatedRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Unread notifications count
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["unread-notifications", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("id, read_by")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) return 0;
+      return (data || []).filter((n: any) => {
+        const readBy: string[] = Array.isArray(n.read_by) ? n.read_by : [];
+        return !readBy.includes(user?.id || "");
+      }).length;
+    },
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -27,7 +49,12 @@ const DashboardLayout = () => {
     { label: "Take Quiz", href: "/dashboard/take-quiz", icon: PenTool, roles: ["student"] },
     { label: "Manage Quizzes", href: "/dashboard/quizzes", icon: ClipboardList, roles: ["teacher", "admin"] },
     { label: "Assignments", href: "/dashboard/assignments", icon: Settings, roles: ["student", "teacher", "admin"] },
+    { label: "Classes", href: "/dashboard/classes", icon: School, roles: ["teacher", "admin"] },
+    { label: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck, roles: ["student", "teacher", "admin"] },
     { label: "Announcements", href: "/dashboard/announcements", icon: Megaphone, roles: ["student", "teacher", "admin"] },
+    { label: "Notifications", href: "/dashboard/notifications", icon: Bell, roles: ["student", "teacher", "admin"], badge: unreadCount },
+    { label: "Finance", href: "/dashboard/finance", icon: DollarSign, roles: ["admin"] },
+    { label: "Progress", href: "/dashboard/progress", icon: TrendingUp, roles: ["admin"] },
     { label: "Users", href: "/dashboard/users", icon: Users, roles: ["admin"] },
     { label: "Email List", href: "/dashboard/email-list", icon: Mail, roles: ["admin"] },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin", "teacher"] },
@@ -56,7 +83,7 @@ const DashboardLayout = () => {
           <span className="font-display text-lg font-bold">Adam's Junior</span>
         </div>
 
-        <nav className="mt-4 flex flex-col gap-1 px-3">
+        <nav className="mt-4 flex flex-col gap-1 px-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 14rem)" }}>
           {filteredNav.map((item) => (
             <Link
               key={item.href}
@@ -70,6 +97,11 @@ const DashboardLayout = () => {
             >
               <item.icon className="h-4 w-4" />
               {item.label}
+              {item.badge ? (
+                <Badge className="ml-auto h-5 w-5 flex items-center justify-center rounded-full p-0 text-[10px]">
+                  {item.badge > 9 ? "9+" : item.badge}
+                </Badge>
+              ) : null}
             </Link>
           ))}
         </nav>
@@ -106,11 +138,22 @@ const DashboardLayout = () => {
 
       {/* Main area */}
       <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center gap-4 border-b border-border bg-card px-6 lg:hidden">
-          <button onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-6 w-6" />
-          </button>
-          <span className="font-display font-bold">Adam's Junior</span>
+        <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-card px-6">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
+              <Menu className="h-6 w-6" />
+            </button>
+            <span className="font-display font-bold lg:hidden">Adam's Junior</span>
+          </div>
+          {/* Bell icon in header */}
+          <Link to="/dashboard/notifications" className="relative">
+            <Bell className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
         </header>
 
         <main className="flex-1 p-6">
