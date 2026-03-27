@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Bell, DollarSign, BookOpen, Megaphone, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const typeConfig = {
   fee: { label: "Fee Reminder", icon: DollarSign, color: "text-orange-600" },
