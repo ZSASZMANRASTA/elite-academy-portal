@@ -3,11 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import {
-  GraduationCap, LayoutDashboard, BookOpen, Users, LogOut,
-  Menu, BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail,
-  School, CalendarCheck, DollarSign, Bell, TrendingUp
-} from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, DollarSign, Bell, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,15 +19,12 @@ const DashboardLayout = () => {
     queryKey: ["unread-notifications", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("notifications")
-        .select("id, read_by")
-        .order("created_at", { ascending: false })
-        .limit(100);
+        .from("notification_recipients")
+        .select("id")
+        .eq("recipient_id", user!.id)
+        .is("read_at", null);
       if (error) return 0;
-      return (data || []).filter((n: any) => {
-        const readBy: string[] = Array.isArray(n.read_by) ? n.read_by : [];
-        return !readBy.includes(user?.id || "");
-      }).length;
+      return (data || []).length;
     },
     enabled: !!user,
     refetchInterval: 30000,

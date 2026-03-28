@@ -32,8 +32,9 @@ const NotificationsPage = () => {
     queryKey: ["notifications"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
+        .from("notification_recipients")
+        .select("id, notification_id, read_at, notifications(id, title, message, type, sender_id, created_at)")
+        .eq("recipient_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -44,14 +45,38 @@ const NotificationsPage = () => {
 
   const sendMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("notifications").insert({
+      const { data: notificationData, error: notificationError } = await supabase.from("notifications").insert({
         title: form.title,
         message: form.message,
         type: form.type as any,
-        target_role: form.target_role,
         sender_id: user!.id,
-      });
-      if (error) throw error;
+      }).select().single();
+
+      if (notificationError) throw notificationError;
+
+      const { data: recipientProfiles, error: profileError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", form.target_role === "all" ? undefined : form.target_role);
+
+      if (form.target_role !== "all" && profileError) throw profileError;
+
+      const profilesForRole = form.target_role === "all"
+        ? (await supabase.from("user_roles").select("user_id")).data || []
+        : recipientProfiles || [];
+
+      if (profilesForRole && profilesForRole.length > 0) {
+        const recipients = profilesForRole.map((profile: any) => ({
+          notification_id: notificationData.id,
+          recipient_id: profile.user_id,
+        }));
+
+        const { error: recipientError } = await supabase
+          .from("notification_recipients")
+          .insert(recipients);
+
+        if (recipientError) throw recipientError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -63,23 +88,18 @@ const NotificationsPage = () => {
   });
 
   const markReadMutation = useMutation({
-    mutationFn: async (notifId: string) => {
-      const notif = notifications.find((n: any) => n.id === notifId);
-      if (!notif || !user) return;
-      const readBy: string[] = Array.isArray(notif.read_by) ? notif.read_by : [];
-      if (readBy.includes(user.id)) return;
+    mutationFn: async (notifRecipientId: string) => {
       const { error } = await supabase
-        .from("notifications")
-        .update({ read_by: [...readBy, user.id] })
-        .eq("id", notifId);
+        .from("notification_recipients")
+        .update({ read_at: new Date().toISOString() })
+        .eq("id", notifRecipientId);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
   const isRead = (notif: any) => {
-    const readBy: string[] = Array.isArray(notif.read_by) ? notif.read_by : [];
-    return readBy.includes(user?.id || "");
+    return !!notif.read_at;
   };
 
   return (
@@ -139,12 +159,13 @@ const NotificationsPage = () => {
         <Card><CardContent className="py-12 text-center text-muted-foreground">No notifications yet</CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {notifications.map((n: any) => {
+          {notifications.map((item: any) => {
+            const n = item.notifications;
             const cfg = typeConfig[n.type as keyof typeof typeConfig] || typeConfig.general;
             const Icon = cfg.icon;
-            const read = isRead(n);
+            const read = isRead(item);
             return (
-              <Card key={n.id} className={cn(read ? "opacity-60" : "border-primary/20")}>
+              <Card key={item.id} className={cn(read ? "opacity-60" : "border-primary/20")}>
                 <CardContent className="flex items-start gap-4 py-4">
                   <div className={`mt-0.5 ${cfg.color}`}><Icon className="h-5 w-5" /></div>
                   <div className="flex-1 min-w-0">
@@ -157,7 +178,7 @@ const NotificationsPage = () => {
                     <p className="text-xs text-muted-foreground mt-2">{new Date(n.created_at).toLocaleString()}</p>
                   </div>
                   {!read && (
-                    <Button variant="ghost" size="sm" onClick={() => markReadMutation.mutate(n.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => markReadMutation.mutate(item.id)}>
                       <Check className="h-4 w-4" />
                     </Button>
                   )}
