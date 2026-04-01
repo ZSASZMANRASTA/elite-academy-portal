@@ -288,6 +288,33 @@ export type Database = {
           },
         ]
       }
+      fee_structures: {
+        Row: {
+          academic_year: string
+          amount_per_term: number
+          class_name: string
+          created_at: string
+          id: string
+          lunch_fee: number
+        }
+        Insert: {
+          academic_year?: string
+          amount_per_term?: number
+          class_name: string
+          created_at?: string
+          id?: string
+          lunch_fee?: number
+        }
+        Update: {
+          academic_year?: string
+          amount_per_term?: number
+          class_name?: string
+          created_at?: string
+          id?: string
+          lunch_fee?: number
+        }
+        Relationships: []
+      }
       lesson_progress: {
         Row: {
           completed: boolean
@@ -632,6 +659,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_fees: {
+        Row: {
+          academic_year: string
+          balance: number
+          created_at: string
+          id: string
+          mpesa_ref: string | null
+          payment_date: string | null
+          student_id: string
+          term: string
+          total_expected: number
+          total_paid: number
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: string
+          balance?: number
+          created_at?: string
+          id?: string
+          mpesa_ref?: string | null
+          payment_date?: string | null
+          student_id: string
+          term?: string
+          total_expected?: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          balance?: number
+          created_at?: string
+          id?: string
+          mpesa_ref?: string | null
+          payment_date?: string | null
+          student_id?: string
+          term?: string
+          total_expected?: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
