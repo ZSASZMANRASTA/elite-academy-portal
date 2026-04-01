@@ -18,7 +18,7 @@ const DashboardHome = () => {
         const [enrollments, attempts, attendance, fees] = await Promise.all([
           supabase.from("enrollments").select("id, course_id, courses(title)").eq("student_id", user.id),
           supabase.from("quiz_attempts").select("score, total_questions, completed_at").eq("student_id", user.id).order("completed_at", { ascending: false }).limit(5),
-          supabase.from("attendance").select("id, present").eq("student_id", user.id),
+          supabase.from("attendance").select("id, status").eq("student_id", user.id),
           supabase.from("student_fees").select("total_expected, total_paid, balance").eq("student_id", user.id),
         ]);
         const attendanceRecords = attendance.data ?? [];
