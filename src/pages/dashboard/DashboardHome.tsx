@@ -22,7 +22,7 @@ const DashboardHome = () => {
         const [enrollments, attempts, attendance, fees] = await Promise.all([
           supabase.from("enrollments").select("id, course_id, courses(title)").eq("student_id", user.id),
           supabase.from("quiz_attempts").select("score, total_questions, completed_at").eq("student_id", user.id).order("completed_at", { ascending: false }).limit(5),
-          supabase.from("attendance").select("id, status").eq("student_id", user.id),
+          supabase.from("attendance").select("id, status, date").eq("student_id", user.id),
           supabase.from("student_fees").select("total_expected, total_paid, balance").eq("student_id", user.id),
         ]);
         const attendanceRecords = attendance.data ?? [];
@@ -30,12 +30,18 @@ const DashboardHome = () => {
         const attendancePercentage = attendanceRecords.length > 0
           ? Math.round((presentCount / attendanceRecords.length) * 100)
           : 0;
+        // Build last-30-days attendance map
+        const attendanceDays: Record<string, string> = {};
+        attendanceRecords.forEach((a: any) => {
+          attendanceDays[a.date] = a.status;
+        });
         const feeData = fees.data?.[0];
         setStats({
           enrolledCourses: enrollments.data?.length ?? 0,
           recentQuizzes: attempts.data ?? [],
           attendancePercentage,
           totalAttendance: attendanceRecords.length,
+          attendanceDays,
           feesBalance: feeData?.balance ?? 0,
           feesPaid: feeData?.total_paid ?? 0,
           feesExpected: feeData?.total_expected ?? 0,
