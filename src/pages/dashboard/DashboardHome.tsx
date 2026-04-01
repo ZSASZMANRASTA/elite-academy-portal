@@ -1,13 +1,17 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Users, Trophy, Clock, CalendarCheck, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const DashboardHome = () => {
   const { user, profile, role } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +22,7 @@ const DashboardHome = () => {
         const [enrollments, attempts, attendance, fees] = await Promise.all([
           supabase.from("enrollments").select("id, course_id, courses(title)").eq("student_id", user.id),
           supabase.from("quiz_attempts").select("score, total_questions, completed_at").eq("student_id", user.id).order("completed_at", { ascending: false }).limit(5),
-          supabase.from("attendance").select("id, status").eq("student_id", user.id),
+          supabase.from("attendance").select("id, status, date").eq("student_id", user.id),
           supabase.from("student_fees").select("total_expected, total_paid, balance").eq("student_id", user.id),
         ]);
         const attendanceRecords = attendance.data ?? [];
@@ -26,12 +30,18 @@ const DashboardHome = () => {
         const attendancePercentage = attendanceRecords.length > 0
           ? Math.round((presentCount / attendanceRecords.length) * 100)
           : 0;
+        // Build last-30-days attendance map
+        const attendanceDays: Record<string, string> = {};
+        attendanceRecords.forEach((a: any) => {
+          attendanceDays[a.date] = a.status;
+        });
         const feeData = fees.data?.[0];
         setStats({
           enrolledCourses: enrollments.data?.length ?? 0,
           recentQuizzes: attempts.data ?? [],
           attendancePercentage,
           totalAttendance: attendanceRecords.length,
+          attendanceDays,
           feesBalance: feeData?.balance ?? 0,
           feesPaid: feeData?.total_paid ?? 0,
           feesExpected: feeData?.total_expected ?? 0,
@@ -103,7 +113,7 @@ const DashboardHome = () => {
                 <div className="text-2xl font-bold">{stats?.recentQuizzes?.length ?? 0}</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="sm:col-span-2">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">My Attendance</CardTitle>
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" />
@@ -111,9 +121,39 @@ const DashboardHome = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{stats?.attendancePercentage}%</div>
                 <p className="text-xs text-muted-foreground mt-1">{stats?.totalAttendance} sessions</p>
+                {/* Mini 30-day calendar */}
+                <TooltipProvider>
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {Array.from({ length: 30 }).map((_, i) => {
+                      const d = new Date();
+                      d.setDate(d.getDate() - (29 - i));
+                      const key = d.toISOString().split("T")[0];
+                      const status = stats?.attendanceDays?.[key];
+                      const bg = status === "present" || status === "late"
+                        ? "bg-green-500"
+                        : status === "absent"
+                        ? "bg-destructive"
+                        : "bg-muted";
+                      const label = status
+                        ? `${key}: ${status}`
+                        : `${key}: no record`;
+                      return (
+                        <Tooltip key={key}>
+                          <TooltipTrigger asChild>
+                            <div className={`h-3 w-3 rounded-sm ${bg}`} />
+                          </TooltipTrigger>
+                          <TooltipContent className="text-xs">{label}</TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                </TooltipProvider>
+                <Button variant="link" className="px-0 mt-2 h-auto text-xs" onClick={() => navigate("/dashboard/attendance")}>
+                  View full attendance →
+                </Button>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="sm:col-span-2">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">My Fees</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -126,6 +166,13 @@ const DashboardHome = () => {
                     {stats?.feesBalance > 0 ? "Arrears" : "Paid"}
                   </Badge>
                 </div>
+                <div className="mt-3 text-xs text-muted-foreground space-y-1">
+                  <p>Expected: KES {stats?.feesExpected?.toLocaleString()}</p>
+                  <p>Paid: KES {stats?.feesPaid?.toLocaleString()}</p>
+                </div>
+                <Button variant="link" className="px-0 mt-2 h-auto text-xs" onClick={() => navigate("/dashboard/finance")}>
+                  View fee details →
+                </Button>
               </CardContent>
             </Card>
           </div>
