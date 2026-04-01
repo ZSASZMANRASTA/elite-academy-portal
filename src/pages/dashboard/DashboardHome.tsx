@@ -22,7 +22,7 @@ const DashboardHome = () => {
           supabase.from("student_fees").select("total_expected, total_paid, balance").eq("student_id", user.id),
         ]);
         const attendanceRecords = attendance.data ?? [];
-        const presentCount = attendanceRecords.filter(a => a.present).length;
+        const presentCount = attendanceRecords.filter(a => a.status === "present" || a.status === "late").length;
         const attendancePercentage = attendanceRecords.length > 0
           ? Math.round((presentCount / attendanceRecords.length) * 100)
           : 0;
