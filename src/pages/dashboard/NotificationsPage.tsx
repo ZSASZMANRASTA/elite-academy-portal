@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Bell, DollarSign, BookOpen, Megaphone, Check } from "lucide-react";
+import { Plus, DollarSign, BookOpen, Megaphone, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const typeConfig = {
@@ -24,62 +24,38 @@ const NotificationsPage = () => {
   const { user, role } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", message: "", type: "general" as string, target_role: "student" });
+  const [form, setForm] = useState({ title: "", message: "", type: "general", target_role: "student" });
 
   const canSend = role === "admin" || role === "teacher";
 
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("notification_recipients")
-        .select("id, notification_id, read_at, notifications(id, title, message, type, sender_id, created_at)")
-        .eq("recipient_id", user!.id)
+        .from("notifications")
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!user,
   });
 
   const sendMutation = useMutation({
     mutationFn: async () => {
-      const { data: notificationData, error: notificationError } = await supabase.from("notifications").insert({
+      const { error } = await supabase.from("notifications").insert({
         title: form.title,
         message: form.message,
-        type: form.type as any,
+        type: form.type as "fee" | "quiz" | "general",
+        target_role: form.target_role,
         sender_id: user!.id,
-      }).select().single();
-
-      if (notificationError) throw notificationError;
-
-      const { data: recipientProfiles, error: profileError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", form.target_role === "all" ? undefined : form.target_role);
-
-      if (form.target_role !== "all" && profileError) throw profileError;
-
-      const profilesForRole = form.target_role === "all"
-        ? (await supabase.from("user_roles").select("user_id")).data || []
-        : recipientProfiles || [];
-
-      if (profilesForRole && profilesForRole.length > 0) {
-        const recipients = profilesForRole.map((profile: any) => ({
-          notification_id: notificationData.id,
-          recipient_id: profile.user_id,
-        }));
-
-        const { error: recipientError } = await supabase
-          .from("notification_recipients")
-          .insert(recipients);
-
-        if (recipientError) throw recipientError;
-      }
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
       setForm({ title: "", message: "", type: "general", target_role: "student" });
       setDialogOpen(false);
       toast.success("Notification sent");
@@ -88,19 +64,32 @@ const NotificationsPage = () => {
   });
 
   const markReadMutation = useMutation({
-    mutationFn: async (notifRecipientId: string) => {
+    mutationFn: async (notifId: string) => {
+      const notif = notifications.find((n) => n.id === notifId);
+      if (!notif || !user) return;
+      const readBy = Array.isArray(notif.read_by) ? notif.read_by : [];
+      if (readBy.includes(user.id)) return;
       const { error } = await supabase
-        .from("notification_recipients")
-        .update({ read_at: new Date().toISOString() })
-        .eq("id", notifRecipientId);
+        .from("notifications")
+        .update({ read_by: [...readBy, user.id] })
+        .eq("id", notifId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
+    },
   });
 
   const isRead = (notif: any) => {
-    return !!notif.read_at;
+    return Array.isArray(notif.read_by) && notif.read_by.includes(user?.id);
   };
+
+  // Filter notifications relevant to the user's role
+  const filteredNotifications = notifications.filter((n: any) => {
+    if (canSend) return true; // admins/teachers see all
+    return n.target_role === role || n.target_role === "all";
+  });
 
   return (
     <div className="space-y-6">
@@ -155,17 +144,16 @@ const NotificationsPage = () => {
 
       {isLoading ? (
         <p className="text-muted-foreground">Loading...</p>
-      ) : notifications.length === 0 ? (
+      ) : filteredNotifications.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">No notifications yet</CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {notifications.map((item: any) => {
-            const n = item.notifications;
+          {filteredNotifications.map((n: any) => {
             const cfg = typeConfig[n.type as keyof typeof typeConfig] || typeConfig.general;
             const Icon = cfg.icon;
-            const read = isRead(item);
+            const read = isRead(n);
             return (
-              <Card key={item.id} className={cn(read ? "opacity-60" : "border-primary/20")}>
+              <Card key={n.id} className={cn(read ? "opacity-60" : "border-primary/20")}>
                 <CardContent className="flex items-start gap-4 py-4">
                   <div className={`mt-0.5 ${cfg.color}`}><Icon className="h-5 w-5" /></div>
                   <div className="flex-1 min-w-0">
@@ -178,7 +166,7 @@ const NotificationsPage = () => {
                     <p className="text-xs text-muted-foreground mt-2">{new Date(n.created_at).toLocaleString()}</p>
                   </div>
                   {!read && (
-                    <Button variant="ghost" size="sm" onClick={() => markReadMutation.mutate(item.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => markReadMutation.mutate(n.id)}>
                       <Check className="h-4 w-4" />
                     </Button>
                   )}

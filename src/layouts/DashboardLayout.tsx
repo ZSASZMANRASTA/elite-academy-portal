@@ -19,12 +19,13 @@ const DashboardLayout = () => {
     queryKey: ["unread-notifications", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("notification_recipients")
-        .select("id")
-        .eq("recipient_id", user!.id)
-        .is("read_at", null);
+        .from("notifications")
+        .select("id, read_by");
       if (error) return 0;
-      return (data || []).length;
+      return (data || []).filter((n: any) => {
+        const readBy = Array.isArray(n.read_by) ? n.read_by : [];
+        return !readBy.includes(user!.id);
+      }).length;
     },
     enabled: !!user,
     refetchInterval: 30000,
