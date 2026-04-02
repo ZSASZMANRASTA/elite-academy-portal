@@ -134,6 +134,7 @@ export type Database = {
       }
       attendance: {
         Row: {
+          absence_reason: string | null
           class_id: string
           created_at: string
           date: string
@@ -143,6 +144,7 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          absence_reason?: string | null
           class_id: string
           created_at?: string
           date: string
@@ -152,6 +154,7 @@ export type Database = {
           student_id: string
         }
         Update: {
+          absence_reason?: string | null
           class_id?: string
           created_at?: string
           date?: string
@@ -222,6 +225,7 @@ export type Database = {
       }
       courses: {
         Row: {
+          class_id: string | null
           cover_image: string | null
           created_at: string
           description: string | null
@@ -233,6 +237,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          class_id?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
@@ -244,6 +249,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          class_id?: string | null
           cover_image?: string | null
           created_at?: string
           description?: string | null
@@ -254,7 +260,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "courses_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       enrollments: {
         Row: {
@@ -455,6 +469,7 @@ export type Database = {
           message: string | null
           parent_name: string
           phone: string | null
+          student_id: string | null
         }
         Insert: {
           child_grade?: string | null
@@ -465,6 +480,7 @@ export type Database = {
           message?: string | null
           parent_name: string
           phone?: string | null
+          student_id?: string | null
         }
         Update: {
           child_grade?: string | null
@@ -475,6 +491,7 @@ export type Database = {
           message?: string | null
           parent_name?: string
           phone?: string | null
+          student_id?: string | null
         }
         Relationships: []
       }
