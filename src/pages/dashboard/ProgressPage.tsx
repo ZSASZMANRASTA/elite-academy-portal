@@ -129,7 +129,8 @@ const ProgressPage = () => {
     const quizPct = quiz && quiz.totalQ > 0 ? Math.round((quiz.totalScore / quiz.totalQ) * 100) : null;
     const fee = feeStats[s.id] as { expected: number; paid: number; balance: number } | undefined;
     const courses = enrollmentStats[s.id] || 0;
-    return { attPct, att, quiz, quizPct, fee, courses };
+    const parents = (parentContacts as Record<string, any[]>)[s.id] || [];
+    return { attPct, att, quiz, quizPct, fee, courses, parents };
   };
 
   return (
