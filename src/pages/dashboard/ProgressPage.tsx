@@ -100,6 +100,23 @@ const ProgressPage = () => {
     enabled: !!user,
   });
 
+  const { data: parentContacts = {} } = useQuery({
+    queryKey: ["parent-contacts-progress"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("parent_contacts").select("*");
+      if (error) throw error;
+      const map: Record<string, any[]> = {};
+      (data || []).forEach((p: any) => {
+        if (p.student_id) {
+          if (!map[p.student_id]) map[p.student_id] = [];
+          map[p.student_id].push(p);
+        }
+      });
+      return map;
+    },
+    enabled: !!user,
+  });
+
   const openDetail = (student: any) => {
     setSelectedStudent(student);
     setDetailOpen(true);
