@@ -98,6 +98,7 @@ const AttendancePage = () => {
         class_id: selectedClass,
         status: status as AttendanceStatus,
         marked_by: user!.id,
+        absence_reason: status !== "present" ? (reasonMap[student_id] || null) : null,
       }));
       const { error } = await supabase.from("attendance").upsert(records, { onConflict: "date,student_id,class_id" });
       if (error) throw error;
