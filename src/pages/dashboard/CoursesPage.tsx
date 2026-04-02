@@ -48,6 +48,7 @@ const CoursesPage = () => {
       subject: form.subject || null,
       published: form.published,
       teacher_id: user.id,
+      class_id: form.class_id || null,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
