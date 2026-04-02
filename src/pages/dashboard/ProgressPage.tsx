@@ -339,6 +339,28 @@ const ProgressPage = () => {
                     <p className="text-sm text-muted-foreground">No fee records</p>
                   )}
                 </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                    <Phone className="h-4 w-4" /> Parent / Guardian Contact
+                  </h4>
+                  {parents.length > 0 ? (
+                    <div className="space-y-3">
+                      {parents.map((p: any) => (
+                        <div key={p.id} className="rounded-lg border p-3 space-y-1">
+                          <p className="font-medium text-sm">{p.parent_name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" /> {p.email}</p>
+                          {p.phone && <p className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> {p.phone}</p>}
+                          {p.message && <p className="text-xs italic text-muted-foreground mt-1">{p.message}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No parent contact on file</p>
+                  )}
+                </div>
               </div>
             );
           })()}
