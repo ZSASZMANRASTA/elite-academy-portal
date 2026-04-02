@@ -68,8 +68,13 @@ const AttendancePage = () => {
         .eq("date", dateStr);
       if (error) throw error;
       const map: Record<string, AttendanceStatus> = {};
-      data.forEach((a: any) => { map[a.student_id] = a.status; });
+      const reasons: Record<string, string> = {};
+      data.forEach((a: any) => {
+        map[a.student_id] = a.status;
+        if (a.absence_reason) reasons[a.student_id] = a.absence_reason;
+      });
       setAttendanceMap(map);
+      setReasonMap(reasons);
       return data;
     },
     enabled: !!selectedClass && !!dateStr,
