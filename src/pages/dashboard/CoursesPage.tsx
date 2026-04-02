@@ -19,7 +19,14 @@ const CoursesPage = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", subject: "", published: false });
+  const [form, setForm] = useState({ title: "", description: "", subject: "", published: false, class_id: "" });
+
+  const loadClasses = async () => {
+    const { data } = await supabase.from("classes").select("id, name").order("name");
+    return data ?? [];
+  };
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => { loadClasses().then(setClasses); }, []);
 
   const loadCourses = async () => {
     const { data } = await supabase
