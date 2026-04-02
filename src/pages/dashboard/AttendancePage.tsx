@@ -211,7 +211,7 @@ const AttendancePage = () => {
               </TableHeader>
               <TableBody>
                 {students.length === 0 ? (
-                  <TableRow><TableCell colSpan={2} className="text-center py-8 text-muted-foreground">No students in this class</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No students in this class</TableCell></TableRow>
                 ) : (
                   students.map((s: any) => {
                     const status: AttendanceStatus = attendanceMap[s.student_id] || "present";
