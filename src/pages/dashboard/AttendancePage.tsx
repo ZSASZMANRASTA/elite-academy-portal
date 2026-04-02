@@ -206,6 +206,7 @@ const AttendancePage = () => {
                 <TableRow>
                   <TableHead>Student</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Reason (if absent/late)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
