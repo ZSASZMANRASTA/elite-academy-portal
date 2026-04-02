@@ -53,7 +53,7 @@ const CoursesPage = () => {
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Course created!");
-    setForm({ title: "", description: "", subject: "", published: false });
+    setForm({ title: "", description: "", subject: "", published: false, class_id: "" });
     setDialogOpen(false);
     loadCourses();
   };
