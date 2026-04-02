@@ -94,6 +94,17 @@ const CoursesPage = () => {
                   <Input id="subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="e.g. Mathematics" />
                 </div>
                 <div>
+                  <Label htmlFor="class">Assign to Class</Label>
+                  <Select value={form.class_id} onValueChange={(v) => setForm({ ...form, class_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+                    <SelectContent>
+                      {classes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label htmlFor="desc">Description</Label>
                   <Textarea id="desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Course description..." rows={3} />
                 </div>
