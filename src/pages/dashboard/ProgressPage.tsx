@@ -243,7 +243,7 @@ const ProgressPage = () => {
             </DialogTitle>
           </DialogHeader>
           {selectedStudent && (() => {
-            const { attPct, att, quiz, quizPct, fee, courses } = getStudentDetail(selectedStudent);
+            const { attPct, att, quiz, quizPct, fee, courses, parents } = getStudentDetail(selectedStudent);
             return (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
