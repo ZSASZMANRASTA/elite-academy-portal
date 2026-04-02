@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { CalendarIcon, Save, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -67,8 +68,13 @@ const AttendancePage = () => {
         .eq("date", dateStr);
       if (error) throw error;
       const map: Record<string, AttendanceStatus> = {};
-      data.forEach((a: any) => { map[a.student_id] = a.status; });
+      const reasons: Record<string, string> = {};
+      data.forEach((a: any) => {
+        map[a.student_id] = a.status;
+        if (a.absence_reason) reasons[a.student_id] = a.absence_reason;
+      });
       setAttendanceMap(map);
+      setReasonMap(reasons);
       return data;
     },
     enabled: !!selectedClass && !!dateStr,
@@ -98,6 +104,7 @@ const AttendancePage = () => {
         class_id: selectedClass,
         status: status as AttendanceStatus,
         marked_by: user!.id,
+        absence_reason: status !== "present" ? (reasonMap[student_id] || null) : null,
       }));
       const { error } = await supabase.from("attendance").upsert(records, { onConflict: "date,student_id,class_id" });
       if (error) throw error;
@@ -108,6 +115,8 @@ const AttendancePage = () => {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const [reasonMap, setReasonMap] = useState<Record<string, string>>({});
 
   const cycleStatus = (studentId: string) => {
     const order: AttendanceStatus[] = ["present", "absent", "late"];
@@ -202,11 +211,12 @@ const AttendancePage = () => {
                 <TableRow>
                   <TableHead>Student</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Reason (if absent/late)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {students.length === 0 ? (
-                  <TableRow><TableCell colSpan={2} className="text-center py-8 text-muted-foreground">No students in this class</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No students in this class</TableCell></TableRow>
                 ) : (
                   students.map((s: any) => {
                     const status: AttendanceStatus = attendanceMap[s.student_id] || "present";
@@ -220,6 +230,16 @@ const AttendancePage = () => {
                             <Icon className="h-4 w-4" />
                             <Badge variant={cfg.variant}>{cfg.label}</Badge>
                           </Button>
+                        </TableCell>
+                        <TableCell>
+                          {status !== "present" && (
+                            <Input
+                              placeholder="Reason..."
+                              className="h-8 w-48"
+                              value={reasonMap[s.student_id] || ""}
+                              onChange={(e) => setReasonMap((p) => ({ ...p, [s.student_id]: e.target.value }))}
+                            />
+                          )}
                         </TableCell>
                       </TableRow>
                     );

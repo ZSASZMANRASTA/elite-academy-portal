@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Users, BookOpen, ClipboardList, CalendarCheck, User, Mail, GraduationCap, DollarSign } from "lucide-react";
+import { Users, BookOpen, ClipboardList, CalendarCheck, User, Mail, GraduationCap, DollarSign, Phone } from "lucide-react";
 
 const ProgressPage = () => {
   const { user } = useAuth();
@@ -100,6 +100,23 @@ const ProgressPage = () => {
     enabled: !!user,
   });
 
+  const { data: parentContacts = {} } = useQuery({
+    queryKey: ["parent-contacts-progress"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("parent_contacts").select("*");
+      if (error) throw error;
+      const map: Record<string, any[]> = {};
+      (data || []).forEach((p: any) => {
+        if (p.student_id) {
+          if (!map[p.student_id]) map[p.student_id] = [];
+          map[p.student_id].push(p);
+        }
+      });
+      return map;
+    },
+    enabled: !!user,
+  });
+
   const openDetail = (student: any) => {
     setSelectedStudent(student);
     setDetailOpen(true);
@@ -112,7 +129,8 @@ const ProgressPage = () => {
     const quizPct = quiz && quiz.totalQ > 0 ? Math.round((quiz.totalScore / quiz.totalQ) * 100) : null;
     const fee = feeStats[s.id] as { expected: number; paid: number; balance: number } | undefined;
     const courses = enrollmentStats[s.id] || 0;
-    return { attPct, att, quiz, quizPct, fee, courses };
+    const parents = (parentContacts as Record<string, any[]>)[s.id] || [];
+    return { attPct, att, quiz, quizPct, fee, courses, parents };
   };
 
   return (
@@ -225,7 +243,7 @@ const ProgressPage = () => {
             </DialogTitle>
           </DialogHeader>
           {selectedStudent && (() => {
-            const { attPct, att, quiz, quizPct, fee, courses } = getStudentDetail(selectedStudent);
+            const { attPct, att, quiz, quizPct, fee, courses, parents } = getStudentDetail(selectedStudent);
             return (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -319,6 +337,28 @@ const ProgressPage = () => {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">No fee records</p>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                    <Phone className="h-4 w-4" /> Parent / Guardian Contact
+                  </h4>
+                  {parents.length > 0 ? (
+                    <div className="space-y-3">
+                      {parents.map((p: any) => (
+                        <div key={p.id} className="rounded-lg border p-3 space-y-1">
+                          <p className="font-medium text-sm">{p.parent_name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" /> {p.email}</p>
+                          {p.phone && <p className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> {p.phone}</p>}
+                          {p.message && <p className="text-xs italic text-muted-foreground mt-1">{p.message}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No parent contact on file</p>
                   )}
                 </div>
               </div>

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Tables } from "@/integrations/supabase/types";
 
 const CoursesPage = () => {
@@ -19,7 +20,14 @@ const CoursesPage = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", subject: "", published: false });
+  const [form, setForm] = useState({ title: "", description: "", subject: "", published: false, class_id: "" });
+
+  const loadClasses = async () => {
+    const { data } = await supabase.from("classes").select("id, name").order("name");
+    return data ?? [];
+  };
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => { loadClasses().then(setClasses); }, []);
 
   const loadCourses = async () => {
     const { data } = await supabase
@@ -41,11 +49,12 @@ const CoursesPage = () => {
       subject: form.subject || null,
       published: form.published,
       teacher_id: user.id,
+      class_id: form.class_id || null,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Course created!");
-    setForm({ title: "", description: "", subject: "", published: false });
+    setForm({ title: "", description: "", subject: "", published: false, class_id: "" });
     setDialogOpen(false);
     loadCourses();
   };
@@ -84,6 +93,17 @@ const CoursesPage = () => {
                 <div>
                   <Label htmlFor="subject">Subject</Label>
                   <Input id="subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="e.g. Mathematics" />
+                </div>
+                <div>
+                  <Label htmlFor="class">Assign to Class</Label>
+                  <Select value={form.class_id} onValueChange={(v) => setForm({ ...form, class_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+                    <SelectContent>
+                      {classes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="desc">Description</Label>
