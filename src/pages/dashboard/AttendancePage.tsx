@@ -226,6 +226,16 @@ const AttendancePage = () => {
                             <Badge variant={cfg.variant}>{cfg.label}</Badge>
                           </Button>
                         </TableCell>
+                        <TableCell>
+                          {status !== "present" && (
+                            <Input
+                              placeholder="Reason..."
+                              className="h-8 w-48"
+                              value={reasonMap[s.student_id] || ""}
+                              onChange={(e) => setReasonMap((p) => ({ ...p, [s.student_id]: e.target.value }))}
+                            />
+                          )}
+                        </TableCell>
                       </TableRow>
                     );
                   })

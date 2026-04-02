@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Users, BookOpen, ClipboardList, CalendarCheck, User, Mail, GraduationCap, DollarSign } from "lucide-react";
+import { Users, BookOpen, ClipboardList, CalendarCheck, User, Mail, GraduationCap, DollarSign, Phone } from "lucide-react";
 
 const ProgressPage = () => {
   const { user } = useAuth();
