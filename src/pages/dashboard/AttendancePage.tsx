@@ -109,6 +109,8 @@ const AttendancePage = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const [reasonMap, setReasonMap] = useState<Record<string, string>>({});
+
   const cycleStatus = (studentId: string) => {
     const order: AttendanceStatus[] = ["present", "absent", "late"];
     const current = attendanceMap[studentId] || "present";
