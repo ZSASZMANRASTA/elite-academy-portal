@@ -139,7 +139,7 @@ const MaterialsPage = () => {
                   {lesson.video_url ? <Video className="h-5 w-5 text-primary" /> : <FileText className="h-5 w-5 text-primary" />}
                   <div>
                     <p className="font-medium">{lesson.title}</p>
-                    <p className="text-xs text-muted-foreground">{courseMap.get(lesson.course_id) ?? "Unknown Course"}</p>
+                    <p className="text-xs text-muted-foreground">{courseMap.get(lesson.course_id) ?? "Unknown Subject"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

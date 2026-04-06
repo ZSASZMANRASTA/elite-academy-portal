@@ -149,7 +149,7 @@ const AssignmentsPage = () => {
               <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-medium">{a.title}</p>
-                  <p className="text-xs text-muted-foreground">{(a.courses as any)?.title ?? "Unknown Course"}</p>
+                  <p className="text-xs text-muted-foreground">{(a.courses as any)?.title ?? "Unknown Subject"}</p>
                   {a.due_date && (
                     <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />Due: {new Date(a.due_date).toLocaleDateString()}

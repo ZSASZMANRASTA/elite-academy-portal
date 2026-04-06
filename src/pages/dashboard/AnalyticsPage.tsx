@@ -70,7 +70,7 @@ const AnalyticsPage = () => {
         { label: "Assignments", value: stats.totalAssignments, icon: FileText },
       ]
     : [
-        { label: "My Courses", value: stats.myCourses, icon: BookOpen },
+        { label: "My Subjects", value: stats.myCourses, icon: BookOpen },
         { label: "Total Students", value: stats.totalStudents, icon: Users },
         { label: "Quizzes Taken", value: stats.quizzesTaken, icon: Trophy },
         { label: "Avg Quiz Score", value: `${stats.avgQuizScore}%`, icon: Trophy },
