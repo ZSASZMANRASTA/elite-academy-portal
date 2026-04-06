@@ -62,15 +62,15 @@ const AnalyticsPage = () => {
     ? [
         { label: "Total Users", value: stats.totalUsers, icon: Users },
         { label: "Pending Approvals", value: stats.pendingApprovals, icon: Users },
-        { label: "Total Courses", value: stats.totalCourses, icon: BookOpen },
-        { label: "Published Courses", value: stats.publishedCourses, icon: BookOpen },
+        { label: "Total Subjects", value: stats.totalCourses, icon: BookOpen },
+        { label: "Published Subjects", value: stats.publishedCourses, icon: BookOpen },
         { label: "Enrollments", value: stats.totalEnrollments, icon: ClipboardList },
         { label: "Quizzes Taken", value: stats.quizzesTaken, icon: Trophy },
         { label: "Avg Quiz Score", value: `${stats.avgQuizScore}%`, icon: Trophy },
         { label: "Assignments", value: stats.totalAssignments, icon: FileText },
       ]
     : [
-        { label: "My Courses", value: stats.myCourses, icon: BookOpen },
+        { label: "My Subjects", value: stats.myCourses, icon: BookOpen },
         { label: "Total Students", value: stats.totalStudents, icon: Users },
         { label: "Quizzes Taken", value: stats.quizzesTaken, icon: Trophy },
         { label: "Avg Quiz Score", value: `${stats.avgQuizScore}%`, icon: Trophy },

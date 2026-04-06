@@ -141,10 +141,10 @@ const QuizManagePage = () => {
             <DialogHeader><DialogTitle>Create Quiz</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Course</Label>
+                <Label>Subject</Label>
                 <Select value={newQuiz.course_id} onValueChange={(v) => setNewQuiz({ ...newQuiz, course_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
-                  <SelectContent>{courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
+                   <SelectTrigger><SelectValue placeholder="Select subject" /></SelectTrigger>
+                   <SelectContent>{courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div><Label>Title</Label><Input value={newQuiz.title} onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })} /></div>

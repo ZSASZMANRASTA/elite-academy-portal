@@ -262,7 +262,7 @@ const ProgressPage = () => {
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Enrolled Courses</p>
+                    <p className="text-xs text-muted-foreground">Enrolled Subjects</p>
                     <p className="font-medium flex items-center gap-1"><GraduationCap className="h-4 w-4" /> {courses}</p>
                   </div>
                 </div>

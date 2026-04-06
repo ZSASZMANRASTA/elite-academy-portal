@@ -38,7 +38,7 @@ const DashboardLayout = () => {
 
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["student", "teacher", "admin"] },
-    { label: "Courses", href: "/dashboard/courses", icon: BookOpen, roles: ["student", "teacher", "admin"] },
+    { label: "Subjects", href: "/dashboard/subjects", icon: BookOpen, roles: ["student", "teacher", "admin"] },
     { label: "Materials", href: "/dashboard/materials", icon: BookOpen, roles: ["student", "teacher", "admin"] },
     { label: "Take Quiz", href: "/dashboard/take-quiz", icon: PenTool, roles: ["student"] },
     { label: "Manage Quizzes", href: "/dashboard/quizzes", icon: ClipboardList, roles: ["teacher", "admin"] },
