@@ -20,13 +20,42 @@ const typeConfig = {
   general: { label: "General", icon: Megaphone, color: "text-primary" },
 };
 
+type TargetMode = "role" | "class" | "individual";
+
 const NotificationsPage = () => {
   const { user, role } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", message: "", type: "general", target_role: "student" });
+  const [form, setForm] = useState({
+    title: "", message: "", type: "general",
+    target_role: "student", target_mode: "role" as TargetMode,
+    target_class_id: "", target_user_id: "",
+  });
 
   const canSend = role === "admin" || role === "teacher";
+
+  // Fetch classes for the class dropdown
+  const { data: classes = [] } = useQuery({
+    queryKey: ["classes-for-notif"],
+    queryFn: async () => {
+      const { data } = await supabase.from("classes").select("id, name").order("name");
+      return data || [];
+    },
+    enabled: canSend,
+  });
+
+  // Fetch students for individual targeting
+  const { data: students = [] } = useQuery({
+    queryKey: ["students-for-notif"],
+    queryFn: async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "student");
+      if (!roles?.length) return [];
+      const ids = roles.map((r) => r.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("id, full_name, class").in("id", ids);
+      return profiles || [];
+    },
+    enabled: canSend,
+  });
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications", user?.id],
@@ -42,21 +71,38 @@ const NotificationsPage = () => {
     enabled: !!user,
   });
 
+  // Fetch user's class enrollments for filtering
+  const { data: myClassIds = [] } = useQuery({
+    queryKey: ["my-class-ids", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("class_enrollments").select("class_id").eq("student_id", user!.id);
+      return (data || []).map((e) => e.class_id);
+    },
+    enabled: !!user && role === "student",
+  });
+
   const sendMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("notifications").insert({
+      const insert: any = {
         title: form.title,
         message: form.message,
         type: form.type as "fee" | "quiz" | "general",
-        target_role: form.target_role,
         sender_id: user!.id,
-      });
+        target_role: form.target_mode === "role" ? form.target_role : "student",
+      };
+      if (form.target_mode === "class" && form.target_class_id) {
+        insert.target_class_id = form.target_class_id;
+      }
+      if (form.target_mode === "individual" && form.target_user_id) {
+        insert.target_user_id = form.target_user_id;
+      }
+      const { error } = await supabase.from("notifications").insert(insert);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
-      setForm({ title: "", message: "", type: "general", target_role: "student" });
+      setForm({ title: "", message: "", type: "general", target_role: "student", target_mode: "role", target_class_id: "", target_user_id: "" });
       setDialogOpen(false);
       toast.success("Notification sent");
     },
@@ -85,11 +131,21 @@ const NotificationsPage = () => {
     return Array.isArray(notif.read_by) && notif.read_by.includes(user?.id);
   };
 
-  // Filter notifications relevant to the user's role
+  // Filter notifications relevant to the current user
   const filteredNotifications = notifications.filter((n: any) => {
     if (canSend) return true; // admins/teachers see all
+    // Individual target
+    if (n.target_user_id) return n.target_user_id === user?.id;
+    // Class target
+    if (n.target_class_id) return myClassIds.includes(n.target_class_id);
+    // Role-based
     return n.target_role === role || n.target_role === "all";
   });
+
+  const canSubmit = form.title && form.message && !sendMutation.isPending &&
+    (form.target_mode === "role" ||
+     (form.target_mode === "class" && form.target_class_id) ||
+     (form.target_mode === "individual" && form.target_user_id));
 
   return (
     <div className="space-y-6">
@@ -123,17 +179,62 @@ const NotificationsPage = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label>Target Audience</Label>
-                  <Select value={form.target_role} onValueChange={(v) => setForm((p) => ({ ...p, target_role: v }))}>
+                  <Label>Send To</Label>
+                  <Select value={form.target_mode} onValueChange={(v) => setForm((p) => ({ ...p, target_mode: v as TargetMode, target_class_id: "", target_user_id: "" }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">Students</SelectItem>
-                      <SelectItem value="teacher">Teachers</SelectItem>
-                      <SelectItem value="all">Everyone</SelectItem>
+                      <SelectItem value="role">By Role (All Students / Teachers / Everyone)</SelectItem>
+                      <SelectItem value="class">Specific Class</SelectItem>
+                      <SelectItem value="individual">Individual Student</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="w-full" disabled={!form.title || !form.message || sendMutation.isPending} onClick={() => sendMutation.mutate()}>
+
+                {form.target_mode === "role" && (
+                  <div>
+                    <Label>Target Role</Label>
+                    <Select value={form.target_role} onValueChange={(v) => setForm((p) => ({ ...p, target_role: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">All Students</SelectItem>
+                        <SelectItem value="teacher">All Teachers</SelectItem>
+                        <SelectItem value="all">Everyone</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {form.target_mode === "class" && (
+                  <div>
+                    <Label>Select Class</Label>
+                    <Select value={form.target_class_id} onValueChange={(v) => setForm((p) => ({ ...p, target_class_id: v }))}>
+                      <SelectTrigger><SelectValue placeholder="Choose a class..." /></SelectTrigger>
+                      <SelectContent>
+                        {classes.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {form.target_mode === "individual" && (
+                  <div>
+                    <Label>Select Student</Label>
+                    <Select value={form.target_user_id} onValueChange={(v) => setForm((p) => ({ ...p, target_user_id: v }))}>
+                      <SelectTrigger><SelectValue placeholder="Choose a student..." /></SelectTrigger>
+                      <SelectContent>
+                        {students.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.full_name}{s.class ? ` (${s.class})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <Button className="w-full" disabled={!canSubmit} onClick={() => sendMutation.mutate()}>
                   {sendMutation.isPending ? "Sending..." : "Send"}
                 </Button>
               </div>
@@ -157,9 +258,11 @@ const NotificationsPage = () => {
                 <CardContent className="flex items-start gap-4 py-4">
                   <div className={`mt-0.5 ${cfg.color}`}><Icon className="h-5 w-5" /></div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold">{n.title}</h3>
                       <Badge variant="outline" className="text-xs">{cfg.label}</Badge>
+                      {n.target_user_id && <Badge variant="secondary" className="text-xs">Direct</Badge>}
+                      {n.target_class_id && <Badge variant="secondary" className="text-xs">Class</Badge>}
                       {!read && <Badge className="text-xs">New</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">{n.message}</p>

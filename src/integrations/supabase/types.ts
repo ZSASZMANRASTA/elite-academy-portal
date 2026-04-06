@@ -433,7 +433,9 @@ export type Database = {
           message: string
           read_by: string[]
           sender_id: string
+          target_class_id: string | null
           target_role: string
+          target_user_id: string | null
           title: string
           type: Database["public"]["Enums"]["notification_type"]
         }
@@ -443,7 +445,9 @@ export type Database = {
           message: string
           read_by?: string[]
           sender_id: string
+          target_class_id?: string | null
           target_role?: string
+          target_user_id?: string | null
           title: string
           type?: Database["public"]["Enums"]["notification_type"]
         }
@@ -453,7 +457,9 @@ export type Database = {
           message?: string
           read_by?: string[]
           sender_id?: string
+          target_class_id?: string | null
           target_role?: string
+          target_user_id?: string | null
           title?: string
           type?: Database["public"]["Enums"]["notification_type"]
         }
