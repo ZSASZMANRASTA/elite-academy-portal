@@ -14,17 +14,33 @@ const DashboardLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Fetch user's class enrollments for notification filtering
+  const { data: myClassIds = [] } = useQuery({
+    queryKey: ["my-class-ids-layout", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("class_enrollments").select("class_id").eq("student_id", user!.id);
+      return (data || []).map((e) => e.class_id);
+    },
+    enabled: !!user && role === "student",
+  });
+
+  const isAdmin = role === "admin" || role === "teacher";
+
   // Unread notifications count
   const { data: unreadCount = 0 } = useQuery({
-    queryKey: ["unread-notifications", user?.id],
+    queryKey: ["unread-notifications", user?.id, myClassIds],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications")
-        .select("id, read_by");
+        .select("id, read_by, target_role, target_user_id, target_class_id");
       if (error) return 0;
       return (data || []).filter((n: any) => {
         const readBy = Array.isArray(n.read_by) ? n.read_by : [];
-        return !readBy.includes(user!.id);
+        if (readBy.includes(user!.id)) return false;
+        if (isAdmin) return true;
+        if (n.target_user_id) return n.target_user_id === user!.id;
+        if (n.target_class_id) return myClassIds.includes(n.target_class_id);
+        return n.target_role === role || n.target_role === "all";
       }).length;
     },
     enabled: !!user,
