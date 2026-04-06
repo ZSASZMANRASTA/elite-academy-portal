@@ -97,9 +97,9 @@ const MaterialsPage = () => {
               <DialogHeader><DialogTitle>Upload Material</DialogTitle></DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Course</Label>
+                  <Label>Subject</Label>
                   <Select value={form.course_id} onValueChange={(v) => setForm({ ...form, course_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger>
+                     <SelectTrigger><SelectValue placeholder="Select subject" /></SelectTrigger>
                     <SelectContent>{courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
