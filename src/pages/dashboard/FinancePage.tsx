@@ -205,7 +205,21 @@ const FinancePage = () => {
           <h1 className="text-2xl font-bold">Finance Overview</h1>
           <p className="text-muted-foreground">Fee collection and financial management</p>
         </div>
-        <Dialog open={structureDialogOpen} onOpenChange={(open) => { if (!open) closeStructureDialog(); else setStructureDialogOpen(true); }}>
+        <div className="flex items-center gap-2">
+          <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+            <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Terms</SelectItem>
+              {TERMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2024/2025">2024/2025</SelectItem>
+              <SelectItem value="2025/2026">2025/2026</SelectItem>
+            </SelectContent>
+          </Select>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Fee Structure</Button>
           </DialogTrigger>
