@@ -210,8 +210,8 @@ const AssignmentsPage = () => {
                     </Button>
                     {feedbackForm?.id === s.id && (
                       <div className="space-y-2 mt-2">
-                        <Input placeholder="Grade (e.g. A, B+, 85%)" value={feedbackForm.grade} onChange={(e) => setFeedbackForm({ ...feedbackForm, grade: e.target.value })} />
-                        <Textarea placeholder="Write feedback..." value={feedbackForm.feedback} onChange={(e) => setFeedbackForm({ ...feedbackForm, feedback: e.target.value })} />
+                        <Input placeholder="Grade (e.g. A, B+, 85%)" value={feedbackForm!.grade} onChange={(e) => setFeedbackForm({ ...feedbackForm!, grade: e.target.value })} />
+                        <Textarea placeholder="Write feedback..." value={feedbackForm!.feedback} onChange={(e) => setFeedbackForm({ ...feedbackForm!, feedback: e.target.value })} />
                         <Button size="sm" onClick={saveFeedback}>Save Feedback</Button>
                       </div>
                     )}
