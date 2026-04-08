@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2 } from "lucide-react";
 
@@ -17,9 +18,14 @@ interface FeeCategory {
   amount: number;
 }
 
+const TERMS = ["Term 1", "Term 2", "Term 3"];
+const CURRENT_YEAR = "2024/2025";
+
 const FinancePage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedTerm, setSelectedTerm] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<string>(CURRENT_YEAR);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [structureDialogOpen, setStructureDialogOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<any>(null);
@@ -29,15 +35,17 @@ const FinancePage = () => {
     class_name: "",
     amount_per_term: "",
     lunch_fee: "",
-    academic_year: "2024/2025",
+    academic_year: CURRENT_YEAR,
     fee_categories: [] as FeeCategory[],
   });
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const { data: feeStats } = useQuery({
-    queryKey: ["fee-stats"],
+    queryKey: ["fee-stats", selectedTerm, selectedYear],
     queryFn: async () => {
-      const { data, error } = await supabase.from("student_fees").select("total_expected, total_paid, balance");
+      let q = supabase.from("student_fees").select("total_expected, total_paid, balance").eq("academic_year", selectedYear);
+      if (selectedTerm !== "all") q = q.eq("term", selectedTerm);
+      const { data, error } = await q;
       if (error) throw error;
       const totalExpected = data.reduce((sum, f) => sum + (f.total_expected || 0), 0);
       const totalPaid = data.reduce((sum, f) => sum + (f.total_paid || 0), 0);
@@ -49,12 +57,15 @@ const FinancePage = () => {
   });
 
   const { data: studentFees = [] } = useQuery({
-    queryKey: ["all-student-fees"],
+    queryKey: ["all-student-fees", selectedTerm, selectedYear],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("student_fees")
         .select("*, profiles:student_id(full_name, class)")
+        .eq("academic_year", selectedYear)
         .order("balance", { ascending: false });
+      if (selectedTerm !== "all") q = q.eq("term", selectedTerm);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
@@ -194,7 +205,22 @@ const FinancePage = () => {
           <h1 className="text-2xl font-bold">Finance Overview</h1>
           <p className="text-muted-foreground">Fee collection and financial management</p>
         </div>
-        <Dialog open={structureDialogOpen} onOpenChange={(open) => { if (!open) closeStructureDialog(); else setStructureDialogOpen(true); }}>
+        <div className="flex items-center gap-2">
+          <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+            <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Terms</SelectItem>
+              {TERMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2024/2025">2024/2025</SelectItem>
+              <SelectItem value="2025/2026">2025/2026</SelectItem>
+            </SelectContent>
+          </Select>
+          <Dialog open={structureDialogOpen} onOpenChange={(open) => { if (!open) closeStructureDialog(); else setStructureDialogOpen(true); }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Fee Structure</Button>
           </DialogTrigger>
@@ -258,7 +284,8 @@ const FinancePage = () => {
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats cards */}
@@ -270,7 +297,7 @@ const FinancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">KES {feeStats?.totalExpected.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">This term</p>
+            <p className="text-xs text-muted-foreground">{selectedTerm === "all" ? `${selectedYear}` : `${selectedTerm} · ${selectedYear}`}</p>
           </CardContent>
         </Card>
         <Card>
@@ -280,7 +307,7 @@ const FinancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">KES {feeStats?.totalPaid.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">This term</p>
+            <p className="text-xs text-muted-foreground">{selectedTerm === "all" ? `${selectedYear}` : `${selectedTerm} · ${selectedYear}`}</p>
           </CardContent>
         </Card>
         <Card>
