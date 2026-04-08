@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const fees = [
+const defaultFees = [
   { level: "PP1 – PP2", tuition: "15,000", lunch: "8,000", total: "23,000" },
   { level: "Grade 1 – 3", tuition: "18,000", lunch: "8,000", total: "26,000" },
   { level: "Grade 4 – 6", tuition: "22,000", lunch: "8,000", total: "30,000" },
@@ -92,7 +92,7 @@ const Admissions = () => {
                 </tr>
               </thead>
               <tbody>
-                {fees.map((row) => (
+                {defaultFees.map((row) => (
                   <tr key={row.level} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{row.level}</td>
                     <td className="px-4 py-3 text-right text-muted-foreground">{row.tuition}</td>

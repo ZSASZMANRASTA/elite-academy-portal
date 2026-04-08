@@ -308,6 +308,7 @@ export type Database = {
           amount_per_term: number
           class_name: string
           created_at: string
+          fee_categories: Json
           id: string
           lunch_fee: number
         }
@@ -316,6 +317,7 @@ export type Database = {
           amount_per_term?: number
           class_name: string
           created_at?: string
+          fee_categories?: Json
           id?: string
           lunch_fee?: number
         }
@@ -324,6 +326,7 @@ export type Database = {
           amount_per_term?: number
           class_name?: string
           created_at?: string
+          fee_categories?: Json
           id?: string
           lunch_fee?: number
         }

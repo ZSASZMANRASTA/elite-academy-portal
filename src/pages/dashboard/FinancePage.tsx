@@ -9,18 +9,30 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine } from "lucide-react";
+import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2 } from "lucide-react";
+
+interface FeeCategory {
+  name: string;
+  amount: number;
+}
 
 const FinancePage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [structureDialogOpen, setStructureDialogOpen] = useState(false);
+  const [editingStructure, setEditingStructure] = useState<any>(null);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [paymentForm, setPaymentForm] = useState({ amount: "", mpesa_ref: "", term: "" });
-  const [structureForm, setStructureForm] = useState({ class_name: "", amount_per_term: "", lunch_fee: "", academic_year: "2024/2025" });
+  const [structureForm, setStructureForm] = useState({
+    class_name: "",
+    amount_per_term: "",
+    lunch_fee: "",
+    academic_year: "2024/2025",
+    fee_categories: [] as FeeCategory[],
+  });
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const { data: feeStats } = useQuery({
     queryKey: ["fee-stats"],
@@ -61,27 +73,16 @@ const FinancePage = () => {
 
   const recordPaymentMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedStudent || !paymentForm.amount) {
-        throw new Error("Missing required fields");
-      }
+      if (!selectedStudent || !paymentForm.amount) throw new Error("Missing required fields");
       const amount = parseFloat(paymentForm.amount);
       const fee = studentFees.find((f) => f.id === selectedStudent);
       if (!fee) throw new Error("Fee record not found");
-
       const newPaid = (fee.total_paid || 0) + amount;
       const newBalance = (fee.total_expected || 0) - newPaid;
-
       const { error } = await supabase
         .from("student_fees")
-        .update({
-          total_paid: newPaid,
-          balance: newBalance,
-          mpesa_ref: paymentForm.mpesa_ref || null,
-          payment_date: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update({ total_paid: newPaid, balance: newBalance, mpesa_ref: paymentForm.mpesa_ref || null, payment_date: new Date().toISOString(), updated_at: new Date().toISOString() })
         .eq("id", selectedStudent);
-
       if (error) throw error;
     },
     onSuccess: () => {
@@ -95,24 +96,96 @@ const FinancePage = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const createStructureMutation = useMutation({
+  const saveStructureMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("fee_structures").insert({
+      const payload = {
         class_name: structureForm.class_name,
-        amount_per_term: parseFloat(structureForm.amount_per_term),
-        lunch_fee: parseFloat(structureForm.lunch_fee),
+        amount_per_term: parseFloat(structureForm.amount_per_term) || 0,
+        lunch_fee: parseFloat(structureForm.lunch_fee) || 0,
         academic_year: structureForm.academic_year,
-      });
+        fee_categories: structureForm.fee_categories as any,
+      };
+      if (editingStructure) {
+        const { error } = await supabase.from("fee_structures").update(payload).eq("id", editingStructure.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("fee_structures").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fee-structures"] });
+      closeStructureDialog();
+      toast.success(editingStructure ? "Fee structure updated" : "Fee structure created");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteStructureMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("fee_structures").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fee-structures"] });
-      setStructureDialogOpen(false);
-      setStructureForm({ class_name: "", amount_per_term: "", lunch_fee: "", academic_year: "2024/2025" });
-      toast.success("Fee structure created");
+      toast.success("Fee structure deleted");
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const closeStructureDialog = () => {
+    setStructureDialogOpen(false);
+    setEditingStructure(null);
+    setStructureForm({ class_name: "", amount_per_term: "", lunch_fee: "", academic_year: "2024/2025", fee_categories: [] });
+    setNewCategoryName("");
+  };
+
+  const openEditStructure = (s: any) => {
+    const cats: FeeCategory[] = Array.isArray(s.fee_categories) ? s.fee_categories : [];
+    setEditingStructure(s);
+    setStructureForm({
+      class_name: s.class_name,
+      amount_per_term: String(s.amount_per_term),
+      lunch_fee: String(s.lunch_fee),
+      academic_year: s.academic_year,
+      fee_categories: cats,
+    });
+    setStructureDialogOpen(true);
+  };
+
+  const addCategory = () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    if (structureForm.fee_categories.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+      toast.error("Category already exists");
+      return;
+    }
+    setStructureForm((p) => ({ ...p, fee_categories: [...p.fee_categories, { name, amount: 0 }] }));
+    setNewCategoryName("");
+  };
+
+  const updateCategoryAmount = (index: number, amount: string) => {
+    setStructureForm((p) => {
+      const cats = [...p.fee_categories];
+      cats[index] = { ...cats[index], amount: parseFloat(amount) || 0 };
+      return { ...p, fee_categories: cats };
+    });
+  };
+
+  const removeCategory = (index: number) => {
+    setStructureForm((p) => ({ ...p, fee_categories: p.fee_categories.filter((_, i) => i !== index) }));
+  };
+
+  const getStructureTotal = (s: any) => {
+    const base = (s.amount_per_term || 0) + (s.lunch_fee || 0);
+    const cats: FeeCategory[] = Array.isArray(s.fee_categories) ? s.fee_categories : [];
+    return base + cats.reduce((sum: number, c: FeeCategory) => sum + (c.amount || 0), 0);
+  };
+
+  const getFormTotal = () => {
+    const base = (parseFloat(structureForm.amount_per_term) || 0) + (parseFloat(structureForm.lunch_fee) || 0);
+    return base + structureForm.fee_categories.reduce((sum, c) => sum + (c.amount || 0), 0);
+  };
 
   return (
     <div className="space-y-6">
@@ -121,12 +194,12 @@ const FinancePage = () => {
           <h1 className="text-2xl font-bold">Finance Overview</h1>
           <p className="text-muted-foreground">Fee collection and financial management</p>
         </div>
-        <Dialog open={structureDialogOpen} onOpenChange={setStructureDialogOpen}>
+        <Dialog open={structureDialogOpen} onOpenChange={(open) => { if (!open) closeStructureDialog(); else setStructureDialogOpen(true); }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Fee Structure</Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Create Fee Structure</DialogTitle></DialogHeader>
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>{editingStructure ? "Edit" : "Create"} Fee Structure</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
                 <Label>Class Name</Label>
@@ -140,18 +213,55 @@ const FinancePage = () => {
                 <Label>Lunch Fee (KES)</Label>
                 <Input type="number" value={structureForm.lunch_fee} onChange={(e) => setStructureForm((p) => ({ ...p, lunch_fee: e.target.value }))} />
               </div>
+
+              {/* Dynamic fee categories */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Additional Fee Categories</Label>
+                {structureForm.fee_categories.map((cat, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-sm min-w-[100px] truncate">{cat.name}</span>
+                    <Input
+                      type="number"
+                      placeholder="Amount"
+                      className="flex-1"
+                      value={cat.amount || ""}
+                      onChange={(e) => updateCategoryAmount(i, e.target.value)}
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeCategory(i)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="e.g. Transport, Activity Fee"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCategory())}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={addCategory} disabled={!newCategoryName.trim()}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="rounded-md bg-muted p-3 text-sm">
+                <span className="font-semibold">Total per Term:</span> KES {getFormTotal().toLocaleString()}
+              </div>
+
               <div>
                 <Label>Academic Year</Label>
                 <Input value={structureForm.academic_year} onChange={(e) => setStructureForm((p) => ({ ...p, academic_year: e.target.value }))} />
               </div>
-              <Button className="w-full" onClick={() => createStructureMutation.mutate()} disabled={createStructureMutation.isPending}>
-                {createStructureMutation.isPending ? "Creating..." : "Create"}
+              <Button className="w-full" onClick={() => saveStructureMutation.mutate()} disabled={saveStructureMutation.isPending}>
+                {saveStructureMutation.isPending ? "Saving..." : editingStructure ? "Update" : "Create"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* Stats cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -195,10 +305,9 @@ const FinancePage = () => {
         </Card>
       </div>
 
+      {/* Student Fee Records */}
       <Card>
-        <CardHeader>
-          <CardTitle>Student Fee Records</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Student Fee Records</CardTitle></CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -224,20 +333,10 @@ const FinancePage = () => {
                     <TableCell>KES {fee.total_expected?.toLocaleString()}</TableCell>
                     <TableCell>KES {fee.total_paid?.toLocaleString()}</TableCell>
                     <TableCell>
-                      <Badge variant={fee.balance > 0 ? "destructive" : "default"}>
-                        KES {fee.balance?.toLocaleString()}
-                      </Badge>
+                      <Badge variant={fee.balance > 0 ? "destructive" : "default"}>KES {fee.balance?.toLocaleString()}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedStudent(fee.id);
-                          setPaymentForm((p) => ({ ...p, term: fee.term }));
-                          setPaymentDialogOpen(true);
-                        }}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedStudent(fee.id); setPaymentForm((p) => ({ ...p, term: fee.term })); setPaymentDialogOpen(true); }}>
                         <ArrowDownToLine className="h-3 w-3 mr-1" /> Record Payment
                       </Button>
                     </TableCell>
@@ -249,6 +348,7 @@ const FinancePage = () => {
         </CardContent>
       </Card>
 
+      {/* Fee Structures */}
       {feeStructures.length > 0 && (
         <Card>
           <CardHeader><CardTitle>Fee Structures</CardTitle></CardHeader>
@@ -259,26 +359,60 @@ const FinancePage = () => {
                   <TableHead>Class</TableHead>
                   <TableHead>Tuition</TableHead>
                   <TableHead>Lunch</TableHead>
+                  {/* Collect all unique extra category names */}
+                  {(() => {
+                    const allCats = new Set<string>();
+                    feeStructures.forEach((s: any) => {
+                      const cats: FeeCategory[] = Array.isArray(s.fee_categories) ? s.fee_categories : [];
+                      cats.forEach((c) => allCats.add(c.name));
+                    });
+                    return Array.from(allCats).map((name) => (
+                      <TableHead key={name}>{name}</TableHead>
+                    ));
+                  })()}
                   <TableHead>Total</TableHead>
-                  <TableHead>Academic Year</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {feeStructures.map((s: any) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.class_name}</TableCell>
-                    <TableCell>KES {s.amount_per_term?.toLocaleString()}</TableCell>
-                    <TableCell>KES {s.lunch_fee?.toLocaleString()}</TableCell>
-                    <TableCell className="font-semibold">KES {(s.amount_per_term + s.lunch_fee).toLocaleString()}</TableCell>
-                    <TableCell>{s.academic_year}</TableCell>
-                  </TableRow>
-                ))}
+                {(() => {
+                  const allCatNames: string[] = [];
+                  const catSet = new Set<string>();
+                  feeStructures.forEach((s: any) => {
+                    const cats: FeeCategory[] = Array.isArray(s.fee_categories) ? s.fee_categories : [];
+                    cats.forEach((c) => { if (!catSet.has(c.name)) { catSet.add(c.name); allCatNames.push(c.name); } });
+                  });
+                  return feeStructures.map((s: any) => {
+                    const cats: FeeCategory[] = Array.isArray(s.fee_categories) ? s.fee_categories : [];
+                    return (
+                      <TableRow key={s.id}>
+                        <TableCell className="font-medium">{s.class_name}</TableCell>
+                        <TableCell>KES {s.amount_per_term?.toLocaleString()}</TableCell>
+                        <TableCell>KES {s.lunch_fee?.toLocaleString()}</TableCell>
+                        {allCatNames.map((name) => {
+                          const cat = cats.find((c) => c.name === name);
+                          return <TableCell key={name}>{cat ? `KES ${cat.amount.toLocaleString()}` : "—"}</TableCell>;
+                        })}
+                        <TableCell className="font-semibold">KES {getStructureTotal(s).toLocaleString()}</TableCell>
+                        <TableCell>{s.academic_year}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => openEditStructure(s)}><Edit2 className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" onClick={() => deleteStructureMutation.mutate(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  });
+                })()}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
       )}
 
+      {/* Record Payment Dialog */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Record Payment</DialogTitle></DialogHeader>

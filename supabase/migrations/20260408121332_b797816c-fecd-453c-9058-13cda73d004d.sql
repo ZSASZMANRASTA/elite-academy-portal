@@ -1,0 +1,1 @@
+ALTER TABLE public.fee_structures ADD COLUMN fee_categories jsonb NOT NULL DEFAULT '[]'::jsonb;
