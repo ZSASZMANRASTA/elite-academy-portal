@@ -284,7 +284,8 @@ const FinancePage = () => {
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats cards */}
