@@ -92,7 +92,7 @@ const Admissions = () => {
                 </tr>
               </thead>
               <tbody>
-                {fees.map((row) => (
+                {defaultFees.map((row) => (
                   <tr key={row.level} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{row.level}</td>
                     <td className="px-4 py-3 text-right text-muted-foreground">{row.tuition}</td>
