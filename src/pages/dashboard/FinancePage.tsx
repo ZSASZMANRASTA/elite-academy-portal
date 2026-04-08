@@ -220,6 +220,7 @@ const FinancePage = () => {
               <SelectItem value="2025/2026">2025/2026</SelectItem>
             </SelectContent>
           </Select>
+          <Dialog open={structureDialogOpen} onOpenChange={(open) => { if (!open) closeStructureDialog(); else setStructureDialogOpen(true); }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Fee Structure</Button>
           </DialogTrigger>
