@@ -18,9 +18,14 @@ interface FeeCategory {
   amount: number;
 }
 
+const TERMS = ["Term 1", "Term 2", "Term 3"];
+const CURRENT_YEAR = "2024/2025";
+
 const FinancePage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedTerm, setSelectedTerm] = useState<string>("all");
+  const [selectedYear, setSelectedYear] = useState<string>(CURRENT_YEAR);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [structureDialogOpen, setStructureDialogOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<any>(null);
@@ -30,7 +35,7 @@ const FinancePage = () => {
     class_name: "",
     amount_per_term: "",
     lunch_fee: "",
-    academic_year: "2024/2025",
+    academic_year: CURRENT_YEAR,
     fee_categories: [] as FeeCategory[],
   });
   const [newCategoryName, setNewCategoryName] = useState("");
