@@ -41,9 +41,11 @@ const FinancePage = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const { data: feeStats } = useQuery({
-    queryKey: ["fee-stats"],
+    queryKey: ["fee-stats", selectedTerm, selectedYear],
     queryFn: async () => {
-      const { data, error } = await supabase.from("student_fees").select("total_expected, total_paid, balance");
+      let q = supabase.from("student_fees").select("total_expected, total_paid, balance").eq("academic_year", selectedYear);
+      if (selectedTerm !== "all") q = q.eq("term", selectedTerm);
+      const { data, error } = await q;
       if (error) throw error;
       const totalExpected = data.reduce((sum, f) => sum + (f.total_expected || 0), 0);
       const totalPaid = data.reduce((sum, f) => sum + (f.total_paid || 0), 0);
@@ -55,12 +57,15 @@ const FinancePage = () => {
   });
 
   const { data: studentFees = [] } = useQuery({
-    queryKey: ["all-student-fees"],
+    queryKey: ["all-student-fees", selectedTerm, selectedYear],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("student_fees")
         .select("*, profiles:student_id(full_name, class)")
+        .eq("academic_year", selectedYear)
         .order("balance", { ascending: false });
+      if (selectedTerm !== "all") q = q.eq("term", selectedTerm);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
