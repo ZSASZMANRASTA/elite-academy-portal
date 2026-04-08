@@ -297,7 +297,7 @@ const FinancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">KES {feeStats?.totalExpected.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">This term</p>
+            <p className="text-xs text-muted-foreground">{selectedTerm === "all" ? `${selectedYear}` : `${selectedTerm} · ${selectedYear}`}</p>
           </CardContent>
         </Card>
         <Card>
@@ -307,7 +307,7 @@ const FinancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">KES {feeStats?.totalPaid.toLocaleString() || 0}</div>
-            <p className="text-xs text-muted-foreground">This term</p>
+            <p className="text-xs text-muted-foreground">{selectedTerm === "all" ? `${selectedYear}` : `${selectedTerm} · ${selectedYear}`}</p>
           </CardContent>
         </Card>
         <Card>
