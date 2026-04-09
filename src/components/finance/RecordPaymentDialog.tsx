@@ -68,8 +68,8 @@ const RecordPaymentDialog = ({ open, onOpenChange, studentFee }: Props) => {
           .from("fee-receipts")
           .upload(path, receiptFile);
         if (uploadError) throw new Error("Failed to upload receipt: " + uploadError.message);
-        const { data: urlData } = supabase.storage.from("fee-receipts").getPublicUrl(path);
-        receipt_url = urlData.publicUrl;
+        // Store the path, not public URL — bucket is private
+        receipt_url = path;
         setUploading(false);
       }
 

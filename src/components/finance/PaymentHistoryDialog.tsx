@@ -101,20 +101,7 @@ const PaymentHistoryDialog = ({ open, onOpenChange, studentFee }: Props) => {
                   </TableCell>
                   <TableCell>
                     {p.receipt_url ? (
-                      <a
-                        href={p.receipt_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
-                      >
-                        {p.receipt_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                          <Image className="h-3.5 w-3.5" />
-                        ) : (
-                          <FileText className="h-3.5 w-3.5" />
-                        )}
-                        View
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                      <ReceiptLink path={p.receipt_url} />
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
