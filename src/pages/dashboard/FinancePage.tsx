@@ -424,24 +424,18 @@ const FinancePage = () => {
       )}
 
       {/* Record Payment Dialog */}
-      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Record Payment</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Amount (KES)</Label>
-              <Input type="number" value={paymentForm.amount} onChange={(e) => setPaymentForm((p) => ({ ...p, amount: e.target.value }))} />
-            </div>
-            <div>
-              <Label>M-Pesa Reference (Optional)</Label>
-              <Input value={paymentForm.mpesa_ref} onChange={(e) => setPaymentForm((p) => ({ ...p, mpesa_ref: e.target.value }))} placeholder="e.g. SH12345678" />
-            </div>
-            <Button className="w-full" onClick={() => recordPaymentMutation.mutate()} disabled={recordPaymentMutation.isPending}>
-              {recordPaymentMutation.isPending ? "Recording..." : "Record Payment"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <RecordPaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        studentFee={selectedFeeRecord}
+      />
+
+      {/* Payment History Dialog */}
+      <PaymentHistoryDialog
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+        studentFee={selectedFeeRecord}
+      />
     </div>
   );
 };
