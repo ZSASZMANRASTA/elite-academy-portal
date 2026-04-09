@@ -11,7 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2 } from "lucide-react";
+import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2, History } from "lucide-react";
+import RecordPaymentDialog from "@/components/finance/RecordPaymentDialog";
+import PaymentHistoryDialog from "@/components/finance/PaymentHistoryDialog";
+import StudentFeeView from "@/components/finance/StudentFeeView";
 
 interface FeeCategory {
   name: string;
@@ -22,15 +25,15 @@ const TERMS = ["Term 1", "Term 2", "Term 3"];
 const CURRENT_YEAR = "2024/2025";
 
 const FinancePage = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const queryClient = useQueryClient();
   const [selectedTerm, setSelectedTerm] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>(CURRENT_YEAR);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [structureDialogOpen, setStructureDialogOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<any>(null);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [paymentForm, setPaymentForm] = useState({ amount: "", mpesa_ref: "", term: "" });
+  const [selectedFeeRecord, setSelectedFeeRecord] = useState<any>(null);
   const [structureForm, setStructureForm] = useState({
     class_name: "",
     amount_per_term: "",
@@ -82,30 +85,7 @@ const FinancePage = () => {
     enabled: !!user,
   });
 
-  const recordPaymentMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedStudent || !paymentForm.amount) throw new Error("Missing required fields");
-      const amount = parseFloat(paymentForm.amount);
-      const fee = studentFees.find((f) => f.id === selectedStudent);
-      if (!fee) throw new Error("Fee record not found");
-      const newPaid = (fee.total_paid || 0) + amount;
-      const newBalance = (fee.total_expected || 0) - newPaid;
-      const { error } = await supabase
-        .from("student_fees")
-        .update({ total_paid: newPaid, balance: newBalance, mpesa_ref: paymentForm.mpesa_ref || null, payment_date: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq("id", selectedStudent);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-student-fees"] });
-      queryClient.invalidateQueries({ queryKey: ["fee-stats"] });
-      setPaymentDialogOpen(false);
-      setSelectedStudent(null);
-      setPaymentForm({ amount: "", mpesa_ref: "", term: "" });
-      toast.success("Payment recorded successfully");
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+  // Payment recording is now handled by RecordPaymentDialog component
 
   const saveStructureMutation = useMutation({
     mutationFn: async () => {
@@ -197,6 +177,11 @@ const FinancePage = () => {
     const base = (parseFloat(structureForm.amount_per_term) || 0) + (parseFloat(structureForm.lunch_fee) || 0);
     return base + structureForm.fee_categories.reduce((sum, c) => sum + (c.amount || 0), 0);
   };
+
+  // Student view: show their own fee records with payment history
+  if (role === "student") {
+    return <StudentFeeView userId={user?.id} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -363,9 +348,14 @@ const FinancePage = () => {
                       <Badge variant={fee.balance > 0 ? "destructive" : "default"}>KES {fee.balance?.toLocaleString()}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedStudent(fee.id); setPaymentForm((p) => ({ ...p, term: fee.term })); setPaymentDialogOpen(true); }}>
-                        <ArrowDownToLine className="h-3 w-3 mr-1" /> Record Payment
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="outline" onClick={() => { setSelectedFeeRecord(fee); setPaymentDialogOpen(true); }}>
+                          <ArrowDownToLine className="h-3 w-3 mr-1" /> Pay
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setSelectedFeeRecord(fee); setHistoryDialogOpen(true); }}>
+                          <History className="h-3 w-3 mr-1" /> History
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -440,24 +430,18 @@ const FinancePage = () => {
       )}
 
       {/* Record Payment Dialog */}
-      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Record Payment</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Amount (KES)</Label>
-              <Input type="number" value={paymentForm.amount} onChange={(e) => setPaymentForm((p) => ({ ...p, amount: e.target.value }))} />
-            </div>
-            <div>
-              <Label>M-Pesa Reference (Optional)</Label>
-              <Input value={paymentForm.mpesa_ref} onChange={(e) => setPaymentForm((p) => ({ ...p, mpesa_ref: e.target.value }))} placeholder="e.g. SH12345678" />
-            </div>
-            <Button className="w-full" onClick={() => recordPaymentMutation.mutate()} disabled={recordPaymentMutation.isPending}>
-              {recordPaymentMutation.isPending ? "Recording..." : "Record Payment"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <RecordPaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        studentFee={selectedFeeRecord}
+      />
+
+      {/* Payment History Dialog */}
+      <PaymentHistoryDialog
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+        studentFee={selectedFeeRecord}
+      />
     </div>
   );
 };

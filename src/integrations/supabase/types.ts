@@ -302,6 +302,56 @@ export type Database = {
           },
         ]
       }
+      fee_payments: {
+        Row: {
+          amount: number
+          bank_name: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_url: string | null
+          recorded_by: string
+          reference_code: string | null
+          student_fee_id: string
+        }
+        Insert: {
+          amount?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_url?: string | null
+          recorded_by: string
+          reference_code?: string | null
+          student_fee_id: string
+        }
+        Update: {
+          amount?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_url?: string | null
+          recorded_by?: string
+          reference_code?: string | null
+          student_fee_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_payments_student_fee_id_fkey"
+            columns: ["student_fee_id"]
+            isOneToOne: false
+            referencedRelation: "student_fees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_structures: {
         Row: {
           academic_year: string
@@ -767,6 +817,7 @@ export type Database = {
       app_role: "student" | "teacher" | "admin"
       attendance_status: "present" | "absent" | "late"
       notification_type: "fee" | "quiz" | "general"
+      payment_method: "mpesa" | "bank" | "cash"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -897,6 +948,7 @@ export const Constants = {
       app_role: ["student", "teacher", "admin"],
       attendance_status: ["present", "absent", "late"],
       notification_type: ["fee", "quiz", "general"],
+      payment_method: ["mpesa", "bank", "cash"],
     },
   },
 } as const
