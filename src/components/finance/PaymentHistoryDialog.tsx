@@ -6,6 +6,40 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, FileText, Image } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+
+const ReceiptLink = ({ path }: { path: string }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      // Handle both old public URLs and new path-only values
+      const storagePath = path.includes("/storage/v1/") ? path.split("/fee-receipts/")[1] : path;
+      const { data, error } = await supabase.storage.from("fee-receipts").createSignedUrl(storagePath, 300);
+      if (error || !data?.signedUrl) throw error;
+      window.open(data.signedUrl, "_blank");
+    } catch {
+      // Fallback for old public URLs
+      window.open(path, "_blank");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isImage = path.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
+    >
+      {isImage ? <Image className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+      {loading ? "…" : "View"}
+      <ExternalLink className="h-3 w-3" />
+    </button>
+  );
+};
 
 interface Props {
   open: boolean;
@@ -101,20 +135,7 @@ const PaymentHistoryDialog = ({ open, onOpenChange, studentFee }: Props) => {
                   </TableCell>
                   <TableCell>
                     {p.receipt_url ? (
-                      <a
-                        href={p.receipt_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
-                      >
-                        {p.receipt_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                          <Image className="h-3.5 w-3.5" />
-                        ) : (
-                          <FileText className="h-3.5 w-3.5" />
-                        )}
-                        View
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                      <ReceiptLink path={p.receipt_url} />
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
