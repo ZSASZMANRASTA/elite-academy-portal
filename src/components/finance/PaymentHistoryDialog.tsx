@@ -6,6 +6,40 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, FileText, Image } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+
+const ReceiptLink = ({ path }: { path: string }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      // Handle both old public URLs and new path-only values
+      const storagePath = path.includes("/storage/v1/") ? path.split("/fee-receipts/")[1] : path;
+      const { data, error } = await supabase.storage.from("fee-receipts").createSignedUrl(storagePath, 300);
+      if (error || !data?.signedUrl) throw error;
+      window.open(data.signedUrl, "_blank");
+    } catch {
+      // Fallback for old public URLs
+      window.open(path, "_blank");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isImage = path.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
+    >
+      {isImage ? <Image className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+      {loading ? "…" : "View"}
+      <ExternalLink className="h-3 w-3" />
+    </button>
+  );
+};
 
 interface Props {
   open: boolean;
