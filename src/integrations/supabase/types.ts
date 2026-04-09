@@ -801,6 +801,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_quiz_questions_for_student: {
+        Args: { _quiz_id: string }
+        Returns: {
+          explanation: string
+          id: string
+          options: Json
+          question: string
+          quiz_id: string
+          sort_order: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
