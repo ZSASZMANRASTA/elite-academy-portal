@@ -24,7 +24,7 @@ const TERMS = ["Term 1", "Term 2", "Term 3"];
 const CURRENT_YEAR = "2024/2025";
 
 const FinancePage = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const queryClient = useQueryClient();
   const [selectedTerm, setSelectedTerm] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>(CURRENT_YEAR);
