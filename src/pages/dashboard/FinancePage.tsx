@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2 } from "lucide-react";
+import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2, History } from "lucide-react";
+import RecordPaymentDialog from "@/components/finance/RecordPaymentDialog";
+import PaymentHistoryDialog from "@/components/finance/PaymentHistoryDialog";
 
 interface FeeCategory {
   name: string;
