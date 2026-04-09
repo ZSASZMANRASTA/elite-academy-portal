@@ -342,9 +342,14 @@ const FinancePage = () => {
                       <Badge variant={fee.balance > 0 ? "destructive" : "default"}>KES {fee.balance?.toLocaleString()}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedStudent(fee.id); setPaymentForm((p) => ({ ...p, term: fee.term })); setPaymentDialogOpen(true); }}>
-                        <ArrowDownToLine className="h-3 w-3 mr-1" /> Record Payment
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="outline" onClick={() => { setSelectedFeeRecord(fee); setPaymentDialogOpen(true); }}>
+                          <ArrowDownToLine className="h-3 w-3 mr-1" /> Pay
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setSelectedFeeRecord(fee); setHistoryDialogOpen(true); }}>
+                          <History className="h-3 w-3 mr-1" /> History
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
