@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2, History } from "lucide-react";
 import RecordPaymentDialog from "@/components/finance/RecordPaymentDialog";
 import PaymentHistoryDialog from "@/components/finance/PaymentHistoryDialog";
+import StudentFeeView from "@/components/finance/StudentFeeView";
 
 interface FeeCategory {
   name: string;
