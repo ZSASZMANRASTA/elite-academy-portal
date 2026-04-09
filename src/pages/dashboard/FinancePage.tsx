@@ -84,30 +84,7 @@ const FinancePage = () => {
     enabled: !!user,
   });
 
-  const recordPaymentMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedStudent || !paymentForm.amount) throw new Error("Missing required fields");
-      const amount = parseFloat(paymentForm.amount);
-      const fee = studentFees.find((f) => f.id === selectedStudent);
-      if (!fee) throw new Error("Fee record not found");
-      const newPaid = (fee.total_paid || 0) + amount;
-      const newBalance = (fee.total_expected || 0) - newPaid;
-      const { error } = await supabase
-        .from("student_fees")
-        .update({ total_paid: newPaid, balance: newBalance, mpesa_ref: paymentForm.mpesa_ref || null, payment_date: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq("id", selectedStudent);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-student-fees"] });
-      queryClient.invalidateQueries({ queryKey: ["fee-stats"] });
-      setPaymentDialogOpen(false);
-      setSelectedStudent(null);
-      setPaymentForm({ amount: "", mpesa_ref: "", term: "" });
-      toast.success("Payment recorded successfully");
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+  // Payment recording is now handled by RecordPaymentDialog component
 
   const saveStructureMutation = useMutation({
     mutationFn: async () => {
