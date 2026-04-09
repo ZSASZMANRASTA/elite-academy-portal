@@ -29,10 +29,10 @@ const FinancePage = () => {
   const [selectedTerm, setSelectedTerm] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>(CURRENT_YEAR);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [structureDialogOpen, setStructureDialogOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<any>(null);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [paymentForm, setPaymentForm] = useState({ amount: "", mpesa_ref: "", term: "" });
+  const [selectedFeeRecord, setSelectedFeeRecord] = useState<any>(null);
   const [structureForm, setStructureForm] = useState({
     class_name: "",
     amount_per_term: "",
