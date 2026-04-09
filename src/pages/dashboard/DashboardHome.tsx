@@ -170,7 +170,9 @@ const DashboardHome = () => {
                   <p>Expected: KES {stats?.feesExpected?.toLocaleString()}</p>
                   <p>Paid: KES {stats?.feesPaid?.toLocaleString()}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2 italic">Contact admin for fee details</p>
+                <Button variant="link" className="px-0 mt-2 h-auto text-xs" onClick={() => navigate("/dashboard/finance")}>
+                  View payment history →
+                </Button>
               </CardContent>
             </Card>
           </div>
