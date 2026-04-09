@@ -177,6 +177,11 @@ const FinancePage = () => {
     return base + structureForm.fee_categories.reduce((sum, c) => sum + (c.amount || 0), 0);
   };
 
+  // Student view: show their own fee records with payment history
+  if (role === "student") {
+    return <StudentFeeView userId={user?.id} />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
