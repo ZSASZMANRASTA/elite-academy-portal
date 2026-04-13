@@ -31,6 +31,7 @@ import AttendancePage from "./pages/dashboard/AttendancePage";
 import FinancePage from "./pages/dashboard/FinancePage";
 import NotificationsPage from "./pages/dashboard/NotificationsPage";
 import ProgressPage from "./pages/dashboard/ProgressPage";
+import SiteEditorPage from "./pages/dashboard/SiteEditorPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,11 @@ const App = () => (
               <Route path="/dashboard/progress" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <ProgressPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/site-editor" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <SiteEditorPage />
                 </ProtectedRoute>
               } />
             </Route>
