@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, DollarSign, Bell, TrendingUp } from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, DollarSign, Bell, TrendingUp, Globe } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,6 +68,7 @@ const DashboardLayout = () => {
     { label: "Users", href: "/dashboard/users", icon: Users, roles: ["admin"] },
     { label: "Email List", href: "/dashboard/email-list", icon: Mail, roles: ["admin"] },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin", "teacher"] },
+    { label: "Site Editor", href: "/dashboard/site-editor", icon: Globe, roles: ["admin"] },
   ];
 
   const filteredNav = navItems.filter((item) => role && item.roles.includes(role));

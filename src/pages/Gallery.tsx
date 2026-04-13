@@ -1,8 +1,9 @@
+import { useSiteContent, GalleryPhoto } from "@/hooks/useSiteContent";
 import heroSchool from "@/assets/hero-school.jpg";
 import heroLab from "@/assets/hero-lab.jpg";
 import heroSports from "@/assets/hero-sports.jpg";
 
-const photos = [
+const defaultPhotos: GalleryPhoto[] = [
   { src: heroSchool, alt: "School campus", label: "Campus" },
   { src: heroLab, alt: "Science lab", label: "Science Lab" },
   { src: heroSports, alt: "Sports field", label: "Sports" },
@@ -12,6 +13,9 @@ const photos = [
 ];
 
 const Gallery = () => {
+  const { data: photos } = useSiteContent<GalleryPhoto[]>("gallery", defaultPhotos);
+  const current = photos ?? defaultPhotos;
+
   return (
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">Gallery</h1>
@@ -19,7 +23,7 @@ const Gallery = () => {
         A glimpse into life at Adam's Junior Academy.
       </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {photos.map((photo, i) => (
+        {current.map((photo, i) => (
           <div key={i} className="group relative overflow-hidden rounded-lg shadow-sm">
             <img
               src={photo.src}

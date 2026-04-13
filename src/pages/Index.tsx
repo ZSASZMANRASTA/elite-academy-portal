@@ -5,9 +5,28 @@ import StatsCard from "@/components/StatsCard";
 import HomepageAnnouncements from "@/components/HomepageAnnouncements";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import ParentContactForm from "@/components/ParentContactForm";
-import { Users, Trophy, BookOpen, Award } from "lucide-react";
+import { Users, Trophy, BookOpen, Award, Star } from "lucide-react";
+import { useSiteContent, StatItem } from "@/hooks/useSiteContent";
+
+const defaultStats: StatItem[] = [
+  { value: "1,200+", label: "Learners (PP1–Grade 9)", icon: "Users" },
+  { value: "100%", label: "KPSEA Transition Rate", icon: "Trophy" },
+  { value: "56", label: "Specialist & Primary Teachers", icon: "BookOpen" },
+  { value: "15+", label: "Years of Excellence", icon: "Award" },
+];
+
+const iconMap: Record<string, React.ReactNode> = {
+  Users: <Users className="h-6 w-6" />,
+  Trophy: <Trophy className="h-6 w-6" />,
+  BookOpen: <BookOpen className="h-6 w-6" />,
+  Award: <Award className="h-6 w-6" />,
+  Star: <Star className="h-6 w-6" />,
+};
 
 const Index = () => {
+  const { data: stats } = useSiteContent<StatItem[]>("stats", defaultStats);
+  const currentStats = stats ?? defaultStats;
+
   return (
     <div>
       {/* Hero */}
@@ -48,10 +67,14 @@ const Index = () => {
       {/* Stats */}
       <section className="container -mt-12 relative z-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard value="1,200+" label="Learners (PP1–Grade 9)" icon={<Users className="h-6 w-6" />} />
-          <StatsCard value="100%" label="KPSEA Transition Rate" icon={<Trophy className="h-6 w-6" />} />
-          <StatsCard value="56" label="Specialist & Primary Teachers" icon={<BookOpen className="h-6 w-6" />} />
-          <StatsCard value="15+" label="Years of Excellence" icon={<Award className="h-6 w-6" />} />
+          {currentStats.map((s, i) => (
+            <StatsCard
+              key={i}
+              value={s.value}
+              label={s.label}
+              icon={iconMap[s.icon] || <Star className="h-6 w-6" />}
+            />
+          ))}
         </div>
       </section>
 
