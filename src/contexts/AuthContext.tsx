@@ -8,7 +8,7 @@ type AppRole = Enums<"app_role">;
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  profile: { full_name: string; class: string | null; subject: string | null; approved: boolean } | null;
+  profile: { full_name: string; class: string | null; subject: string | null; approved: boolean;  } | null;
   role: AppRole | null;
   actualRole: AppRole | null;
   isImpersonating: boolean;
@@ -40,24 +40,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfileAndRole = async (userId: string) => {
-    const [profileRes, roleRes] = await Promise.all([
-      supabase.from("profiles").select("full_name, class, subject, approved").eq("id", userId).single(),
-      supabase.rpc("get_user_role", { _user_id: userId }),
-    ]);
-    if (profileRes.data) setProfile(profileRes.data);
-    if (roleRes.data) {
-      setRole(roleRes.data);
-      // If admin, check for login-time role selection
-      if (roleRes.data === "admin") {
-        const selected = sessionStorage.getItem("selected_login_role") as AppRole | null;
-        if (selected && ["student", "teacher", "admin"].includes(selected)) {
-          setImpersonatedRole(selected);
+    try {
+      // Fetch profile including the role column
+      const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("full_name, class, subject, approved, role")
+          .eq("id", userId)
+          .single();
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+      } else if (profileData) {
+        setProfile(profileData);
+
+        // Use the role from profiles table directly
+        const userRole = profileData.role || "student";
+        setRole(userRole);
+
+        // Handle admin impersonation if applicable
+        if (userRole === "admin") {
+          const selected = sessionStorage.getItem("selected_login_role") as AppRole | null;
+          if (selected && ["student", "teacher", "admin"].includes(selected)) {
+            setImpersonatedRole(selected);
+          } else {
+            setImpersonatedRole(null);
+          }
+        } else {
+          setImpersonatedRole(null);
         }
-      } else {
-        setImpersonatedRole(null);
       }
+    } catch (err) {
+      console.error("Error fetching profile and role:", err);
     }
   };
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

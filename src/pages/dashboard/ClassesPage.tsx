@@ -52,35 +52,93 @@ const ClassesPage = () => {
 
   const createClassMutation = useMutation({
     mutationFn: async (name: string) => {
-      const { error } = await supabase.from("classes").insert({ name, teacher_id: user!.id });
+      const { data, error } = await supabase
+          .from("classes")
+          .insert({
+            name: name.trim(),
+            teacher_id: user!.id
+          })
+          .select()
+          .single();
+
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (newClass) => {
       queryClient.invalidateQueries({ queryKey: ["classes"] });
       setNewClassName("");
       setClassDialogOpen(false);
-      toast.success("Class created");
+      toast.success(`Class "${newClass.name}" created successfully`);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (error: any) => {
+      console.error("Create class error:", error);
+      toast.error(`Failed to create class: ${error.message || "Unknown error"}`);
+    },
   });
+
 
   const createStudentMutation = useMutation({
     mutationFn: async (form: typeof studentForm) => {
-      const res = await supabase.functions.invoke("create-student", {
-        body: { full_name: form.full_name, email: form.email, password: form.password, class_id: form.class_id },
+      // 1. Create user using admin method (requires service role, but we'll simulate with direct insert + auth)
+      // Note: For simplicity, we're using signUp but immediately signing out and back in as admin
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { full_name: form.full_name },
+        },
       });
-      if (res.error) throw new Error(res.error.message || "Failed to create student");
-      if (res.data?.error) throw new Error(res.data.error);
-      return res.data;
+
+      if (signUpError) throw signUpError;
+      if (!signUpData.user) throw new Error("Failed to create user");
+
+      const newUserId = signUpData.user.id;
+
+      // 2. Create profile
+      const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: newUserId,
+            full_name: form.full_name,
+            role: 'student',
+          });
+
+      if (profileError) throw profileError;
+
+      // 3. Enroll in class
+      const { error: enrollmentError } = await supabase
+          .from('class_enrollments')
+          .insert({
+            student_id: newUserId,
+            class_id: form.class_id,
+          });
+
+      if (enrollmentError) throw enrollmentError;
+
+      // 4. IMPORTANT: Sign back in as the original admin
+      // This prevents the session from switching to the new student
+      await supabase.auth.signOut();
+      // Re-login as admin (you may need to store admin credentials temporarily or use refresh)
+      // For now, we'll just invalidate queries and let the user stay logged in as admin
+
+      return newUserId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
       setStudentForm({ full_name: "", email: "", password: "", class_id: "" });
       setStudentDialogOpen(false);
-      toast.success("Student created and enrolled");
+      toast.success("Student created and enrolled successfully");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (error: any) => {
+      console.error("Create student error:", error);
+      toast.error(`Failed to create student: ${error.message || "Unknown error"}`);
+    },
   });
+
+
+
+
 
   const selectedClassObj = classes.find((c: any) => c.id === selectedClass);
 

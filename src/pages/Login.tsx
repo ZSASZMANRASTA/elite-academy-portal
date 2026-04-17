@@ -103,11 +103,6 @@ const Login = () => {
               {loading ? "Signing in…" : `Sign In as ${roleInfo.find((r) => r.value === selectedRole)?.label}`}
             </Button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            New student?{" "}
-            <Link to="/register" className="text-primary hover:underline">Create an account</Link>
-          </div>
         </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
