@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Upload, GripVertical } from "lucide-react";
+import { Loader as Loader2, Plus, Trash2, Upload, GripVertical } from "lucide-react";
 import type { HeroSlide, StatItem, GalleryPhoto, AboutContent, TeamMember } from "@/hooks/useSiteContent";
 
 // Defaults matching current hardcoded content
@@ -90,12 +90,37 @@ function useSaveSection() {
 }
 
 async function uploadImage(file: File): Promise<string> {
-  const ext = file.name.split(".").pop();
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabase.storage.from("site-assets").upload(path, file);
-  if (error) throw error;
-  const { data } = supabase.storage.from("site-assets").getPublicUrl(path);
-  return data.publicUrl;
+  try {
+    if (!file) throw new Error("No file provided");
+    if (!file.type.startsWith("image/")) throw new Error("File must be an image");
+    if (file.size > 5 * 1024 * 1024) throw new Error("File size must be less than 5MB");
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext) throw new Error("File must have an extension");
+
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const { data, error } = await supabase.storage.from("site-assets").upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+    if (error) {
+      console.error("Upload error:", error);
+      throw new Error(error.message || "Failed to upload image");
+    }
+
+    if (!data) throw new Error("Upload returned no data");
+
+    const { data: publicUrl } = supabase.storage.from("site-assets").getPublicUrl(path);
+    if (!publicUrl) throw new Error("Failed to get public URL");
+
+    return publicUrl.publicUrl;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload failed";
+    console.error("uploadImage error:", message);
+    throw new Error(message);
+  }
 }
 
 // ─── Hero Editor ──────────────────────────────────────
@@ -118,8 +143,14 @@ function HeroEditor() {
     try {
       const url = await uploadImage(file);
       update(idx, "src", url);
-    } catch { toast.error("Upload failed"); }
-    setUploading(null);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed";
+      toast.error(message);
+      console.error("Upload error:", error);
+    } finally {
+      setUploading(null);
+    }
   };
 
   const addSlide = () => setItems([...current, { src: "", alt: "", caption: "" }]);
@@ -245,8 +276,14 @@ function GalleryEditor() {
     try {
       const url = await uploadImage(file);
       update(idx, "src", url);
-    } catch { toast.error("Upload failed"); }
-    setUploading(null);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed";
+      toast.error(message);
+      console.error("Upload error:", error);
+    } finally {
+      setUploading(null);
+    }
   };
 
   const addPhoto = () => setItems([...current, { src: "", alt: "", label: "" }]);
@@ -311,8 +348,14 @@ function AboutEditor() {
     try {
       const url = await uploadImage(file);
       updateTeam(idx, "photo", url);
-    } catch { toast.error("Upload failed"); }
-    setUploading(null);
+      toast.success("Photo uploaded successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed";
+      toast.error(message);
+      console.error("Upload error:", error);
+    } finally {
+      setUploading(null);
+    }
   };
 
   const updateStructure = (idx: number, field: string, val: string) => {

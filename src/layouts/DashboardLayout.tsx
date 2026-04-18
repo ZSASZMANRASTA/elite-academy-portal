@@ -3,16 +3,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, DollarSign, Bell, TrendingUp, Globe } from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, DollarSign, Bell, TrendingUp, Globe, Shield } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AdminSetup } from "@/components/AdminSetup";
 
 const DashboardLayout = () => {
   const { user, profile, role, actualRole, isImpersonating, signOut, setImpersonatedRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [adminSetupOpen, setAdminSetupOpen] = useState(false);
 
   // Fetch user's class enrollments for notification filtering
   const { data: myClassIds = [] } = useQuery({
@@ -119,21 +121,31 @@ const DashboardLayout = () => {
 
         <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4 space-y-3">
           {actualRole === "admin" && (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Eye className="h-3 w-3" /> Viewing as
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 text-xs"
+                onClick={() => setAdminSetupOpen(true)}
+              >
+                <Shield className="h-4 w-4" /> Admin Setup
+              </Button>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Eye className="h-3 w-3" /> Viewing as
+                </div>
+                <Select value={role ?? "admin"} onValueChange={(v) => setImpersonatedRole(v as any)}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="student">Student</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={role ?? "admin"} onValueChange={(v) => setImpersonatedRole(v as any)}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="teacher">Teacher</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            </>
           )}
           <div className="px-1">
             <p className="text-sm font-medium truncate">{profile?.full_name || "User"}</p>
@@ -171,6 +183,8 @@ const DashboardLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      <AdminSetup open={adminSetupOpen} onOpenChange={setAdminSetupOpen} />
     </div>
   );
 };

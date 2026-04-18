@@ -15,6 +15,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"student" | "teacher">("student");
+  const [isCreatingAdmin] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
