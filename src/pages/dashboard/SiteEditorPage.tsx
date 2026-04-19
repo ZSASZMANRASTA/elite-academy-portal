@@ -75,17 +75,37 @@ function useSaveSection() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ section, content }: { section: string; content: any }) => {
-      const { error } = await supabase.from("site_content").upsert(
-        { section, content, updated_by: user?.id },
-        { onConflict: "section" }
-      );
-      if (error) throw error;
+      const safeContent = JSON.parse(JSON.stringify(content));
+
+      const { data: existing, error: selectError } = await supabase
+        .from("site_content")
+        .select("id")
+        .eq("section", section)
+        .maybeSingle();
+
+      if (selectError) throw selectError;
+
+      if (existing) {
+        const { error } = await supabase
+          .from("site_content")
+          .update({ content: safeContent, updated_by: user?.id ?? null })
+          .eq("section", section);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("site_content")
+          .insert({ section, content: safeContent, updated_by: user?.id ?? null });
+        if (error) throw error;
+      }
     },
     onSuccess: (_, { section }) => {
       qc.invalidateQueries({ queryKey: ["site-content", section] });
       toast.success("Changes saved!");
     },
-    onError: () => toast.error("Failed to save changes"),
+    onError: (error: any) => {
+      console.error("Site content save error:", error);
+      toast.error(error?.message || "Failed to save changes");
+    },
   });
 }
 
