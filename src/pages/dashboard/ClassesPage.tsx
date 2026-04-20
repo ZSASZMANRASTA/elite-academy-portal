@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -79,17 +80,34 @@ const ClassesPage = () => {
 
   const createStudentMutation = useMutation({
     mutationFn: async (form: typeof studentForm) => {
-      const { data, error } = await supabase.functions.invoke("create-student", {
-        body: {
-          full_name: form.full_name,
-          email: form.email,
-          password: form.password,
-          class_id: form.class_id,
-        },
+      // Use an isolated, non-persisting client so the admin's session is never touched.
+      // signUp on the main client would swap the active session to the new student.
+      const tempClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+      );
+
+      const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: { data: { full_name: form.full_name, role: "student" } },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
+
+      if (signUpError) throw signUpError;
+      if (!signUpData.user) throw new Error("Failed to create user account");
+
+      const newUserId = signUpData.user.id;
+
+      // The handle_new_user trigger auto-creates the profile + user_role(student).
+      // Now enroll in class using the admin's real client.
+      const { error: enrollErr } = await supabase
+        .from("class_enrollments")
+        .insert({ student_id: newUserId, class_id: form.class_id });
+
+      if (enrollErr) throw enrollErr;
+
+      return newUserId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["class-students", selectedClass] });
