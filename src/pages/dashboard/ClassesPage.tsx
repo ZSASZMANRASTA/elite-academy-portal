@@ -41,12 +41,25 @@ const ClassesPage = () => {
   const { data: students = [], isLoading: loadingStudents } = useQuery({
     queryKey: ["class-students", selectedClass],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: enrollments, error: enrollErr } = await supabase
         .from("class_enrollments")
-        .select("*, profiles:student_id(id, full_name, class, approved)")
+        .select("id, student_id, enrolled_at, class_id")
         .eq("class_id", selectedClass!);
-      if (error) throw error;
-      return data;
+      if (enrollErr) throw enrollErr;
+      if (!enrollments || enrollments.length === 0) return [];
+
+      const studentIds = enrollments.map((e) => e.student_id);
+      const { data: profiles, error: profileErr } = await supabase
+        .from("profiles")
+        .select("id, full_name, class, approved")
+        .in("id", studentIds);
+      if (profileErr) throw profileErr;
+
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return enrollments.map((e) => ({
+        ...e,
+        profiles: profileMap.get(e.student_id) ?? null,
+      }));
     },
     enabled: !!selectedClass,
   });
