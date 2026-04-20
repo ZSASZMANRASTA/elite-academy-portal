@@ -79,52 +79,20 @@ const ClassesPage = () => {
 
   const createStudentMutation = useMutation({
     mutationFn: async (form: typeof studentForm) => {
-      // 1. Create user using admin method (requires service role, but we'll simulate with direct insert + auth)
-      // Note: For simplicity, we're using signUp but immediately signing out and back in as admin
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: { full_name: form.full_name },
+      const { data, error } = await supabase.functions.invoke("create-student", {
+        body: {
+          full_name: form.full_name,
+          email: form.email,
+          password: form.password,
+          class_id: form.class_id,
         },
       });
-
-      if (signUpError) throw signUpError;
-      if (!signUpData.user) throw new Error("Failed to create user");
-
-      const newUserId = signUpData.user.id;
-
-      // 2. Create profile
-      const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: newUserId,
-            full_name: form.full_name,
-            role: 'student',
-          });
-
-      if (profileError) throw profileError;
-
-      // 3. Enroll in class
-      const { error: enrollmentError } = await supabase
-          .from('class_enrollments')
-          .insert({
-            student_id: newUserId,
-            class_id: form.class_id,
-          });
-
-      if (enrollmentError) throw enrollmentError;
-
-      // 4. IMPORTANT: Sign back in as the original admin
-      // This prevents the session from switching to the new student
-      await supabase.auth.signOut();
-      // Re-login as admin (you may need to store admin credentials temporarily or use refresh)
-      // For now, we'll just invalidate queries and let the user stay logged in as admin
-
-      return newUserId;
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      queryClient.invalidateQueries({ queryKey: ["class-students", selectedClass] });
       queryClient.invalidateQueries({ queryKey: ["classes"] });
       setStudentForm({ full_name: "", email: "", password: "", class_id: "" });
       setStudentDialogOpen(false);
