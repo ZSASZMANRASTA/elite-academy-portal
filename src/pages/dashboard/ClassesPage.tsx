@@ -30,7 +30,7 @@ const ClassesPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("classes")
-        .select("*")
+        .select("*, class_enrollments(count)")
         .order("name");
       if (error) throw error;
       return data;
@@ -244,18 +244,22 @@ const ClassesPage = () => {
         <Card><CardContent className="py-12 text-center text-muted-foreground">No classes yet. Create your first class to get started.</CardContent></Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {classes.map((c: any) => (
-            <Card key={c.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setSelectedClass(c.id)}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">{c.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="h-4 w-4" /> Click to view students
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {classes.map((c: any) => {
+            const studentCount = c.class_enrollments?.[0]?.count ?? 0;
+            return (
+              <Card key={c.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setSelectedClass(c.id)}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">{c.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>{studentCount} {studentCount === 1 ? "student" : "students"}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

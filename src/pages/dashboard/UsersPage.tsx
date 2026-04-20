@@ -54,15 +54,34 @@ const UsersPage = () => {
   useEffect(() => { loadUsers(); }, []);
 
   const toggleApproval = async (userId: string, currentlyApproved: boolean) => {
-    const { error } = await supabase.from("profiles").update({ approved: !currentlyApproved }).eq("id", userId);
-    if (error) { toast.error(error.message); return; }
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ approved: !currentlyApproved })
+      .eq("id", userId)
+      .select("id");
+    if (error) { toast.error(`Failed to update: ${error.message}`); return; }
+    if (!data || data.length === 0) {
+      toast.error("Permission denied — your account may not have admin rights in the database yet. Check that your user has the admin role in the user_roles table.");
+      return;
+    }
     toast.success(currentlyApproved ? "User unapproved" : "User approved");
     setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, approved: !currentlyApproved } : u));
   };
 
   const changeRole = async (userId: string, newRole: string) => {
-    const { error } = await supabase.from("user_roles").update({ role: newRole as any }).eq("user_id", userId);
-    if (error) { toast.error(error.message); return; }
+    const { data, error } = await supabase
+      .from("user_roles")
+      .update({ role: newRole as any })
+      .eq("user_id", userId)
+      .select("user_id");
+    if (error) { toast.error(`Failed to update role: ${error.message}`); return; }
+    if (!data || data.length === 0) {
+      // No existing row — try insert instead
+      const { error: insertError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: newRole as any });
+      if (insertError) { toast.error(`Failed to set role: ${insertError.message}`); return; }
+    }
     toast.success(`Role changed to ${newRole}`);
     setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, role: newRole } : u));
   };
