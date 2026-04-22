@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, DollarSign, Bell, TrendingUp, Globe, Shield } from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, CalendarDays, DollarSign, Bell, TrendingUp, Globe, Shield } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -63,6 +63,7 @@ const DashboardLayout = () => {
     { label: "Assignments", href: "/dashboard/assignments", icon: Settings, roles: ["student", "teacher", "admin"] },
     { label: "Classes", href: "/dashboard/classes", icon: School, roles: ["teacher", "admin"] },
     { label: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck, roles: ["student", "teacher", "admin"] },
+    { label: "School Calendar", href: "/dashboard/school-calendar", icon: CalendarDays, roles: ["admin"] },
     { label: "Announcements", href: "/dashboard/announcements", icon: Megaphone, roles: ["student", "teacher", "admin"] },
     { label: "Notifications", href: "/dashboard/notifications", icon: Bell, roles: ["student", "teacher", "admin"], badge: unreadCount },
     { label: "Finance", href: "/dashboard/finance", icon: DollarSign, roles: ["admin"] },

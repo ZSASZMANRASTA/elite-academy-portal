@@ -32,6 +32,7 @@ import FinancePage from "./pages/dashboard/FinancePage";
 import NotificationsPage from "./pages/dashboard/NotificationsPage";
 import ProgressPage from "./pages/dashboard/ProgressPage";
 import SiteEditorPage from "./pages/dashboard/SiteEditorPage";
+import SchoolCalendarPage from "./pages/dashboard/SchoolCalendarPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,11 @@ const App = () => (
               <Route path="/dashboard/site-editor" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <SiteEditorPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/school-calendar" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <SchoolCalendarPage />
                 </ProtectedRoute>
               } />
             </Route>
