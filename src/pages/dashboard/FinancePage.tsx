@@ -22,7 +22,7 @@ interface FeeCategory {
 }
 
 const TERMS = ["Term 1", "Term 2", "Term 3"];
-const CURRENT_YEAR = "2024/2025";
+const CURRENT_YEAR = "2025/2026";
 
 const FinancePage = () => {
   const { user, role } = useAuth();
@@ -64,13 +64,21 @@ const FinancePage = () => {
     queryFn: async () => {
       let q = supabase
         .from("student_fees")
-        .select("*, profiles:student_id(full_name, class)")
+        .select("*")
         .eq("academic_year", selectedYear)
         .order("balance", { ascending: false });
       if (selectedTerm !== "all") q = q.eq("term", selectedTerm);
       const { data, error } = await q;
       if (error) throw error;
-      return data;
+      if (!data || data.length === 0) return [];
+
+      const studentIds = [...new Set(data.map((f) => f.student_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, class")
+        .in("id", studentIds);
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return data.map((f) => ({ ...f, profiles: profileMap.get(f.student_id) ?? null }));
     },
     enabled: !!user,
   });

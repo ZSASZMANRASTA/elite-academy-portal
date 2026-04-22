@@ -46,12 +46,25 @@ const AttendancePage = () => {
   const { data: students = [] } = useQuery({
     queryKey: ["class-students-attendance", selectedClass],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: enrollments, error: enrollErr } = await supabase
         .from("class_enrollments")
-        .select("student_id, profiles:student_id(id, full_name)")
+        .select("student_id")
         .eq("class_id", selectedClass);
-      if (error) throw error;
-      return data;
+      if (enrollErr) throw enrollErr;
+      if (!enrollments || enrollments.length === 0) return [];
+
+      const studentIds = enrollments.map((e) => e.student_id);
+      const { data: profiles, error: profileErr } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", studentIds);
+      if (profileErr) throw profileErr;
+
+      const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return enrollments.map((e) => ({
+        student_id: e.student_id,
+        profiles: profileMap.get(e.student_id) ?? null,
+      }));
     },
     enabled: !!selectedClass,
   });

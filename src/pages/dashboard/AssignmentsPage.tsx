@@ -42,8 +42,20 @@ const AssignmentsPage = () => {
         setCourses(c.data ?? []);
         setAssignments(a.data ?? []);
       } else {
-        const { data } = await supabase.from("assignments").select("*, courses!inner(title, published)").eq("courses.published", true).order("due_date", { ascending: true });
-        setAssignments(data ?? []);
+        // Fetch published course IDs first, then get assignments for those courses
+        const { data: publishedCourses } = await supabase
+          .from("courses")
+          .select("id, title")
+          .eq("published", true);
+        if (!publishedCourses?.length) { setAssignments([]); return; }
+        const courseIds = publishedCourses.map((c) => c.id);
+        const courseMap = new Map(publishedCourses.map((c) => [c.id, c]));
+        const { data: assignmentData } = await supabase
+          .from("assignments")
+          .select("*")
+          .in("course_id", courseIds)
+          .order("due_date", { ascending: true });
+        setAssignments((assignmentData ?? []).map((a) => ({ ...a, courses: courseMap.get(a.course_id) ?? null })));
       }
       setLoading(false);
     };
