@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2, History } from "lucide-react";
+import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2, History, Zap, Loader2 } from "lucide-react";
 import RecordPaymentDialog from "@/components/finance/RecordPaymentDialog";
 import PaymentHistoryDialog from "@/components/finance/PaymentHistoryDialog";
 import StudentFeeView from "@/components/finance/StudentFeeView";
@@ -34,8 +34,10 @@ const FinancePage = () => {
   const [structureDialogOpen, setStructureDialogOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<any>(null);
   const [selectedFeeRecord, setSelectedFeeRecord] = useState<any>(null);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
   const [structureForm, setStructureForm] = useState({
     class_name: "",
+    term: "",
     amount_per_term: "",
     lunch_fee: "",
     academic_year: CURRENT_YEAR,
@@ -99,6 +101,7 @@ const FinancePage = () => {
     mutationFn: async () => {
       const payload = {
         class_name: structureForm.class_name,
+        term: structureForm.term || null,
         amount_per_term: parseFloat(structureForm.amount_per_term) || 0,
         lunch_fee: parseFloat(structureForm.lunch_fee) || 0,
         academic_year: structureForm.academic_year,
@@ -135,7 +138,7 @@ const FinancePage = () => {
   const closeStructureDialog = () => {
     setStructureDialogOpen(false);
     setEditingStructure(null);
-    setStructureForm({ class_name: "", amount_per_term: "", lunch_fee: "", academic_year: "2024/2025", fee_categories: [] });
+    setStructureForm({ class_name: "", term: "", amount_per_term: "", lunch_fee: "", academic_year: CURRENT_YEAR, fee_categories: [] });
     setNewCategoryName("");
   };
 
@@ -144,12 +147,78 @@ const FinancePage = () => {
     setEditingStructure(s);
     setStructureForm({
       class_name: s.class_name,
+      term: s.term || "",
       amount_per_term: String(s.amount_per_term),
       lunch_fee: String(s.lunch_fee),
       academic_year: s.academic_year,
       fee_categories: cats,
     });
     setStructureDialogOpen(true);
+  };
+
+  const applyStructureToStudents = async (structure: any) => {
+    setApplyingId(structure.id);
+    try {
+      const { data: matchingClasses, error: classErr } = await supabase
+        .from("classes")
+        .select("id")
+        .eq("name", structure.class_name);
+      if (classErr) throw classErr;
+      if (!matchingClasses?.length) {
+        toast.error(`No classes found named "${structure.class_name}" — ensure the class name matches exactly`);
+        return;
+      }
+
+      const classIds = matchingClasses.map((c) => c.id);
+      const { data: enrollments, error: enrollErr } = await supabase
+        .from("class_enrollments")
+        .select("student_id")
+        .in("class_id", classIds);
+      if (enrollErr) throw enrollErr;
+      if (!enrollments?.length) {
+        toast.error("No students are enrolled in these classes yet");
+        return;
+      }
+
+      const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
+      const totalExpected = getStructureTotal(structure);
+      const termsToApply = structure.term ? [structure.term] : TERMS;
+
+      const { data: existing } = await supabase
+        .from("student_fees")
+        .select("student_id, term")
+        .in("student_id", studentIds)
+        .eq("academic_year", structure.academic_year)
+        .in("term", termsToApply);
+
+      const existingSet = new Set((existing ?? []).map((r) => `${r.student_id}::${r.term}`));
+
+      const toInsert: any[] = [];
+      for (const studentId of studentIds) {
+        for (const term of termsToApply) {
+          if (!existingSet.has(`${studentId}::${term}`)) {
+            toInsert.push({ student_id: studentId, academic_year: structure.academic_year, term, total_expected: totalExpected, total_paid: 0, balance: totalExpected });
+          }
+        }
+      }
+
+      if (toInsert.length === 0) {
+        toast.info("Fee records already exist for all these students — no new records created");
+        return;
+      }
+
+      const { error: insertErr } = await supabase.from("student_fees").insert(toInsert);
+      if (insertErr) throw insertErr;
+
+      const skipped = studentIds.length * termsToApply.length - toInsert.length;
+      toast.success(`Created ${toInsert.length} fee record${toInsert.length !== 1 ? "s" : ""} for ${studentIds.length} student${studentIds.length !== 1 ? "s" : ""}${skipped > 0 ? ` (${skipped} already existed, skipped)` : ""}`);
+      queryClient.invalidateQueries({ queryKey: ["all-student-fees"] });
+      queryClient.invalidateQueries({ queryKey: ["fee-stats"] });
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setApplyingId(null);
+    }
   };
 
   const addCategory = () => {
@@ -223,6 +292,17 @@ const FinancePage = () => {
               <div>
                 <Label>Class Name</Label>
                 <Input value={structureForm.class_name} onChange={(e) => setStructureForm((p) => ({ ...p, class_name: e.target.value }))} placeholder="e.g. Grade 7" />
+                <p className="text-xs text-muted-foreground mt-1">Must match the class name exactly to auto-apply fees</p>
+              </div>
+              <div>
+                <Label>Term</Label>
+                <Select value={structureForm.term || "all"} onValueChange={(v) => setStructureForm((p) => ({ ...p, term: v === "all" ? "" : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select term" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Terms (apply same rate to each)</SelectItem>
+                    {TERMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Tuition per Term (KES)</Label>
@@ -382,9 +462,9 @@ const FinancePage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Class</TableHead>
+                  <TableHead>Term</TableHead>
                   <TableHead>Tuition</TableHead>
                   <TableHead>Lunch</TableHead>
-                  {/* Collect all unique extra category names */}
                   {(() => {
                     const allCats = new Set<string>();
                     feeStructures.forEach((s: any) => {
@@ -395,7 +475,7 @@ const FinancePage = () => {
                       <TableHead key={name}>{name}</TableHead>
                     ));
                   })()}
-                  <TableHead>Total</TableHead>
+                  <TableHead>Total/Term</TableHead>
                   <TableHead>Year</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -413,6 +493,13 @@ const FinancePage = () => {
                     return (
                       <TableRow key={s.id}>
                         <TableCell className="font-medium">{s.class_name}</TableCell>
+                        <TableCell>
+                          {s.term ? (
+                            <Badge variant="outline">{s.term}</Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">All Terms</span>
+                          )}
+                        </TableCell>
                         <TableCell>KES {s.amount_per_term?.toLocaleString()}</TableCell>
                         <TableCell>KES {s.lunch_fee?.toLocaleString()}</TableCell>
                         {allCatNames.map((name) => {
@@ -423,6 +510,17 @@ const FinancePage = () => {
                         <TableCell>{s.academic_year}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-xs"
+                              onClick={() => applyStructureToStudents(s)}
+                              disabled={applyingId === s.id}
+                              title="Create fee records for all students in this class"
+                            >
+                              {applyingId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                              Apply
+                            </Button>
                             <Button size="icon" variant="ghost" onClick={() => openEditStructure(s)}><Edit2 className="h-4 w-4" /></Button>
                             <Button size="icon" variant="ghost" onClick={() => deleteStructureMutation.mutate(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                           </div>
