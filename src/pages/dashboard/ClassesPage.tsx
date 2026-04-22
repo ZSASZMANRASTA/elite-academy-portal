@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Users, UserPlus, ArrowLeft, ArrowRightLeft } from "lucide-react";
+import StudentDetailDialog from "@/components/StudentDetailDialog";
 
 const ClassesPage = () => {
   const { user, role } = useAuth();
@@ -25,6 +26,8 @@ const ClassesPage = () => {
   const [transferStudent, setTransferStudent] = useState<any>(null);
   const [transferTarget, setTransferTarget] = useState<string>("");
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [viewingStudent, setViewingStudent] = useState<any>(null);
+  const [studentDetailOpen, setStudentDetailOpen] = useState(false);
 
   const isTeacherOrAdmin = role === "teacher" || role === "admin";
 
@@ -239,7 +242,11 @@ const ClassesPage = () => {
                   <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No students enrolled</TableCell></TableRow>
                 ) : (
                   students.map((s: any) => (
-                    <TableRow key={s.id}>
+                    <TableRow
+                      key={s.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => { setViewingStudent(s); setStudentDetailOpen(true); }}
+                    >
                       <TableCell className="font-medium">{s.profiles?.full_name || "—"}</TableCell>
                       <TableCell>
                         <Badge variant={s.profiles?.approved ? "default" : "secondary"}>
@@ -250,7 +257,7 @@ const ClassesPage = () => {
                         {new Date(s.enrolled_at).toLocaleDateString()}
                       </TableCell>
                       {isTeacherOrAdmin && (
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="outline"
@@ -268,6 +275,14 @@ const ClassesPage = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Student Detail Dialog */}
+        <StudentDetailDialog
+          open={studentDetailOpen}
+          onOpenChange={(open) => { setStudentDetailOpen(open); if (!open) setViewingStudent(null); }}
+          studentId={viewingStudent?.student_id ?? null}
+          studentName={viewingStudent?.profiles?.full_name}
+        />
 
         {/* Transfer Dialog */}
         <Dialog open={transferDialogOpen} onOpenChange={(open) => { setTransferDialogOpen(open); if (!open) { setTransferStudent(null); setTransferTarget(""); } }}>
