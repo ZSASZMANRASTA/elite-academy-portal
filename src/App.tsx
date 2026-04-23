@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import PublicLayout from "@/layouts/PublicLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -33,6 +34,10 @@ import NotificationsPage from "./pages/dashboard/NotificationsPage";
 import ProgressPage from "./pages/dashboard/ProgressPage";
 import SiteEditorPage from "./pages/dashboard/SiteEditorPage";
 import SchoolCalendarPage from "./pages/dashboard/SchoolCalendarPage";
+import Shop from "./pages/Shop";
+import ShopCheckout from "./pages/ShopCheckout";
+import ShopAdminPage from "./pages/dashboard/ShopAdminPage";
+import OrderHistoryPage from "./pages/dashboard/OrderHistoryPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +45,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <CartProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -52,6 +58,8 @@ const App = () => (
               <Route path="/admissions" element={<Admissions />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/shop/checkout" element={<ShopCheckout />} />
             </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -92,12 +100,19 @@ const App = () => (
                   <SchoolCalendarPage />
                 </ProtectedRoute>
               } />
+              <Route path="/dashboard/shop-admin" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ShopAdminPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/orders" element={<OrderHistoryPage />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </CartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

@@ -201,7 +201,7 @@ const AttendancePage = () => {
           <h1 className="text-2xl font-bold">My Attendance</h1>
           {pct !== null && (
             <p className="text-sm text-muted-foreground mt-1">
-              Attendance rate: <span className={cn("font-semibold", pct >= 80 ? "text-green-600" : pct >= 60 ? "text-amber-600" : "text-destructive")}>{pct}%</span>
+              Attendance rate: <span className={cn("font-semibold", pct >= 80 ? "text-green-600" : pct >= 60 ? "text-red-500" : "text-destructive")}>{pct}%</span>
               {" "}({presentOrLate} of {total} recorded school days)
             </p>
           )}
@@ -258,7 +258,7 @@ const AttendancePage = () => {
       <div>
         <h1 className="text-2xl font-bold">Attendance</h1>
         {terms.length === 0 && (
-          <p className="text-sm text-amber-600 mt-1 flex items-center gap-1.5">
+          <p className="text-sm text-red-600 mt-1 flex items-center gap-1.5">
             <AlertCircle className="h-4 w-4" />
             No school terms defined — go to School Calendar to set up term dates before marking attendance.
           </p>
@@ -274,7 +274,7 @@ const AttendancePage = () => {
                 variant="outline"
                 className={cn(
                   "w-[220px] justify-start text-left font-normal",
-                  !selectedDateIsOpenDay && "border-amber-400 text-amber-700"
+                  !selectedDateIsOpenDay && "border-red-400 text-red-700"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -324,7 +324,7 @@ const AttendancePage = () => {
 
       {/* Warning banner for non-open days */}
       {warningMessage && (
-        <div className="flex items-center gap-2.5 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+        <div className="flex items-center gap-2.5 rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/30 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{warningMessage} Attendance can still be saved if needed.</span>
         </div>

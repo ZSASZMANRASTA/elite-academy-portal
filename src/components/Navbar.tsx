@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X, GraduationCap, ShoppingCart } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -9,12 +10,14 @@ const navLinks = [
   { label: "Academics", path: "/academics" },
   { label: "Admissions", path: "/admissions" },
   { label: "Gallery", path: "/gallery" },
+  { label: "Shop", path: "/shop" },
   { label: "Contact", path: "/contact" },
 ];
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { totalItems } = useCart();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -46,6 +49,16 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
+          <Button variant="outline" size="sm" className="relative gap-1.5" asChild>
+            <Link to="/shop">
+              <ShoppingCart className="h-4 w-4" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          </Button>
           <Button variant="accent" asChild>
             <Link to="/admissions">Admissions</Link>
           </Button>
