@@ -34,6 +34,7 @@ import NotificationsPage from "./pages/dashboard/NotificationsPage";
 import ProgressPage from "./pages/dashboard/ProgressPage";
 import SiteEditorPage from "./pages/dashboard/SiteEditorPage";
 import SchoolCalendarPage from "./pages/dashboard/SchoolCalendarPage";
+import BackupPage from "./pages/dashboard/BackupPage";
 import Shop from "./pages/Shop";
 import ShopCheckout from "./pages/ShopCheckout";
 import ShopAdminPage from "./pages/dashboard/ShopAdminPage";
