@@ -101,6 +101,11 @@ const App = () => (
                   <SchoolCalendarPage />
                 </ProtectedRoute>
               } />
+              <Route path="/dashboard/backup" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <BackupPage />
+                </ProtectedRoute>
+              } />
               <Route path="/dashboard/shop-admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <ShopAdminPage />
