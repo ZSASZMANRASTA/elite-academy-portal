@@ -11,8 +11,8 @@ const defaultSlides: HeroSlide[] = [
 ];
 
 const HeroCarousel = () => {
-  const { data: slides } = useSiteContent<HeroSlide[]>("hero", defaultSlides);
-  const current = slides ?? defaultSlides;
+  const { data: slides, isLoading } = useSiteContent<HeroSlide[]>("hero", defaultSlides);
+  const current = isLoading ? [] : (slides ?? defaultSlides);
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
