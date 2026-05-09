@@ -13,8 +13,8 @@ const defaultPhotos: GalleryPhoto[] = [
 ];
 
 const Gallery = () => {
-  const { data: photos } = useSiteContent<GalleryPhoto[]>("gallery", defaultPhotos);
-  const current = photos ?? defaultPhotos;
+  const { data: photos, isLoading } = useSiteContent<GalleryPhoto[]>("gallery", defaultPhotos);
+  const current = isLoading ? [] : (photos ?? defaultPhotos);
 
   return (
     <div className="container py-16">
