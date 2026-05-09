@@ -74,6 +74,7 @@ const DashboardLayout = () => {
     { label: "Site Editor", href: "/dashboard/site-editor", icon: Globe, roles: ["admin"] },
     { label: "Shop Management", href: "/dashboard/shop-admin", icon: Store, roles: ["admin"] },
     { label: "My Orders", href: "/dashboard/orders", icon: ShoppingBag, roles: ["student", "teacher", "admin"] },
+    { label: "Backup & Reset", href: "/dashboard/backup", icon: Archive, roles: ["admin"] },
   ];
 
   const filteredNav = navItems.filter((item) => role && item.roles.includes(role));
