@@ -36,6 +36,27 @@ const ShopAdminPage = () => {
   const [addingProduct, setAddingProduct] = useState(false);
   const [form, setForm] = useState(BLANK_PRODUCT);
   const [variantInput, setVariantInput] = useState({ size: "", stock: "" });
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `shop/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("site-assets").upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("site-assets").getPublicUrl(path);
+      setForm((f) => ({ ...f, image_url: data.publicUrl }));
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ["shop-products-admin"],
@@ -178,8 +199,37 @@ const ShopAdminPage = () => {
         )}
       </div>
       <div>
-        <Label className="text-xs">Image URL (optional)</Label>
-        <Input className="mt-1 h-9" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
+        <Label className="text-xs">Product Image</Label>
+        <div className="mt-1 flex items-center gap-3">
+          {form.image_url ? (
+            <img src={form.image_url} alt="Preview" className="h-16 w-16 rounded-md object-cover border" />
+          ) : (
+            <div className="h-16 w-16 rounded-md border border-dashed flex items-center justify-center bg-muted">
+              <Package className="h-5 w-5 text-muted-foreground" />
+            </div>
+          )}
+          <div className="flex flex-col gap-1.5">
+            <Input
+              type="file"
+              accept="image/*"
+              className="h-9 text-xs file:mr-2 file:rounded file:border-0 file:bg-primary file:px-2 file:py-1 file:text-xs file:text-primary-foreground"
+              disabled={uploadingImage}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImageUpload(file);
+                e.target.value = "";
+              }}
+            />
+            <div className="flex items-center gap-2">
+              {uploadingImage && <span className="text-xs text-muted-foreground">Uploading...</span>}
+              {form.image_url && !uploadingImage && (
+                <button type="button" onClick={() => setForm({ ...form, image_url: "" })} className="text-xs text-destructive hover:underline">
+                  Remove image
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       {/* Variants (sizes) */}
       {!form.is_digital && !form.is_donation && (
