@@ -36,6 +36,27 @@ const ShopAdminPage = () => {
   const [addingProduct, setAddingProduct] = useState(false);
   const [form, setForm] = useState(BLANK_PRODUCT);
   const [variantInput, setVariantInput] = useState({ size: "", stock: "" });
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `shop/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("site-assets").upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("site-assets").getPublicUrl(path);
+      setForm((f) => ({ ...f, image_url: data.publicUrl }));
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ["shop-products-admin"],
