@@ -35,6 +35,7 @@ import ProgressPage from "./pages/dashboard/ProgressPage";
 import SiteEditorPage from "./pages/dashboard/SiteEditorPage";
 import SchoolCalendarPage from "./pages/dashboard/SchoolCalendarPage";
 import BackupPage from "./pages/dashboard/BackupPage";
+import AdminSecurityPage from "./pages/dashboard/AdminSecurityPage";
 import Shop from "./pages/Shop";
 import ShopCheckout from "./pages/ShopCheckout";
 import ShopAdminPage from "./pages/dashboard/ShopAdminPage";
@@ -112,6 +113,11 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/dashboard/orders" element={<OrderHistoryPage />} />
+              <Route path="/dashboard/security" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminSecurityPage />
+                </ProtectedRoute>
+              } />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
