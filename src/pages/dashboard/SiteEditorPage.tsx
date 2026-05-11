@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader as Loader2, Plus, Trash2, Upload, GripVertical } from "lucide-react";
-import type { HeroSlide, StatItem, GalleryPhoto, AboutContent, TeamMember } from "@/hooks/useSiteContent";
+import { type HeroSlide, type StatItem, type GalleryPhoto, type AboutContent, type TeamMember, type ContactInfo, defaultContactInfo } from "@/hooks/useSiteContent";
 
 // Defaults matching current hardcoded content
 import heroSchool from "@/assets/hero-school.jpg";
@@ -444,6 +444,39 @@ function AboutEditor() {
 
       <Button onClick={() => save.mutate({ section: "about", content: current })} disabled={save.isPending}>
         {save.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null} Save About Page
+      </Button>
+    </div>
+  );
+}
+
+// ─── Contact Info Editor ───────────────────────────────
+function ContactEditor() {
+  const { data: info, isLoading } = useSectionContent<ContactInfo>("contact_info", defaultContactInfo);
+  const save = useSaveSection();
+  const [content, setContent] = useState<ContactInfo | null>(null);
+  const current = content ?? info ?? defaultContactInfo;
+  const set = (field: keyof ContactInfo, val: string) => setContent({ ...current, [field]: val });
+
+  if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
+
+  return (
+    <div className="space-y-4 max-w-2xl">
+      <p className="text-sm text-muted-foreground">
+        These details appear in the footer, contact page, and anywhere school contact info is shown.
+      </p>
+      <div><Label>Phone</Label><Input value={current.phone} onChange={(e) => set("phone", e.target.value)} /></div>
+      <div><Label>Email</Label><Input value={current.email} onChange={(e) => set("email", e.target.value)} /></div>
+      <div><Label>Address</Label><Input value={current.address} onChange={(e) => set("address", e.target.value)} /></div>
+      <div><Label>Weekday Hours</Label><Input value={current.hoursWeekday} onChange={(e) => set("hoursWeekday", e.target.value)} /></div>
+      <div><Label>Saturday Hours</Label><Input value={current.hoursSaturday} onChange={(e) => set("hoursSaturday", e.target.value)} /></div>
+      <div><Label>Sunday Hours</Label><Input value={current.hoursSunday} onChange={(e) => set("hoursSunday", e.target.value)} /></div>
+      <div>
+        <Label>Google Maps Embed URL</Label>
+        <Input value={current.mapEmbedUrl} onChange={(e) => set("mapEmbedUrl", e.target.value)} placeholder="https://maps.google.com/maps?q=…&output=embed" />
+        <p className="text-xs text-muted-foreground mt-1">Paste an embed URL from Google Maps (Share → Embed a map → copy the src URL).</p>
+      </div>
+      <Button onClick={() => save.mutate({ section: "contact_info", content: current })} disabled={save.isPending}>
+        {save.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null} Save Contact Info
       </Button>
     </div>
   );
