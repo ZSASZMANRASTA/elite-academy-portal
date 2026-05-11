@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_login_audit: {
+        Row: {
+          created_at: string
+          email: string | null
+          event: string
+          id: string
+          ip_address: string | null
+          mfa_used: boolean
+          success: boolean
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          event?: string
+          id?: string
+          ip_address?: string | null
+          mfa_used?: boolean
+          success?: boolean
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          event?: string
+          id?: string
+          ip_address?: string | null
+          mfa_used?: boolean
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
