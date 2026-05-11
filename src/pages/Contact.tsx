@@ -5,9 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { useSiteContent, defaultContactInfo, type ContactInfo } from "@/hooks/useSiteContent";
 
 const Contact = () => {
   const [loading, setLoading] = useState(false);
+  const { data: contact } = useSiteContent<ContactInfo>("contact_info", defaultContactInfo);
+  const c = contact ?? defaultContactInfo;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,7 +38,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-display font-semibold">Address</h3>
-                <p className="text-sm text-muted-foreground">Saina, Kajiado Central, Kajiado County, Kenya</p>
+                <p className="text-sm text-muted-foreground">{c.address}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -44,7 +47,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-display font-semibold">Phone</h3>
-                <p className="text-sm text-muted-foreground">+254 700 123 456</p>
+                <p className="text-sm text-muted-foreground">{c.phone}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -53,24 +56,26 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-display font-semibold">Email</h3>
-                <p className="text-sm text-muted-foreground">info@adamsjunior.ac.ke</p>
+                <p className="text-sm text-muted-foreground">{c.email}</p>
               </div>
             </div>
           </div>
 
           {/* Map */}
-          <div className="mt-8 overflow-hidden rounded-lg border border-border">
-            <iframe
-              title="Adam's Junior Academy Location"
-              src="https://maps.google.com/maps?q=-1.833460,36.791718&z=17&output=embed"
-              width="100%"
-              height="280"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
+          {c.mapEmbedUrl && (
+            <div className="mt-8 overflow-hidden rounded-lg border border-border">
+              <iframe
+                title="Adam's Junior Academy Location"
+                src={c.mapEmbedUrl}
+                width="100%"
+                height="280"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          )}
         </div>
 
         {/* Contact Form */}
