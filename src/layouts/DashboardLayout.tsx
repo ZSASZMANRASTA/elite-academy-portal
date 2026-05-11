@@ -3,13 +3,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, CalendarDays, DollarSign, Bell, TrendingUp, Globe, Shield, ShoppingBag, Store, Archive, Lock } from "lucide-react";
+import { GraduationCap, LayoutDashboard, BookOpen, Users, LogOut, Menu, ChartBar as BarChart3, Settings, PenTool, ClipboardList, Eye, Megaphone, Mail, School, CalendarCheck, CalendarDays, DollarSign, Bell, TrendingUp, Globe, Shield, ShoppingBag, Store, Archive } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminSetup } from "@/components/AdminSetup";
-import AdminMfaGuard from "@/components/AdminMfaGuard";
-import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 
 const DashboardLayout = () => {
   const { user, profile, role, actualRole, isImpersonating, signOut, setImpersonatedRole } = useAuth();
@@ -77,10 +75,7 @@ const DashboardLayout = () => {
     { label: "Shop Management", href: "/dashboard/shop-admin", icon: Store, roles: ["admin"] },
     { label: "My Orders", href: "/dashboard/orders", icon: ShoppingBag, roles: ["student", "teacher", "admin"] },
     { label: "Backup & Reset", href: "/dashboard/backup", icon: Archive, roles: ["admin"] },
-    { label: "Account Security", href: "/dashboard/security", icon: Lock, roles: ["admin"] },
   ];
-
-  useInactivityLogout(actualRole === "admin");
 
   const filteredNav = navItems.filter((item) => role && item.roles.includes(role));
 
@@ -88,7 +83,6 @@ const DashboardLayout = () => {
     href === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(href);
 
   return (
-    <AdminMfaGuard>
     <div className="flex min-h-screen bg-muted/30">
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -196,7 +190,6 @@ const DashboardLayout = () => {
 
       <AdminSetup open={adminSetupOpen} onOpenChange={setAdminSetupOpen} />
     </div>
-    </AdminMfaGuard>
   );
 };
 
