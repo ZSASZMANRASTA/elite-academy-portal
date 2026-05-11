@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
+import { useSiteContent, defaultContactInfo, type ContactInfo } from "@/hooks/useSiteContent";
 
 const Footer = () => {
+  const { data: contact } = useSiteContent<ContactInfo>("contact_info", defaultContactInfo);
+  const c = contact ?? defaultContactInfo;
+
   return (
     <footer className="border-t border-border bg-card">
       <div className="container py-12">
@@ -32,18 +36,18 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold mb-3">Contact</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2"><Phone className="h-4 w-4" /> +254 700 123 456</span>
-              <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> info@adamsjunior.ac.ke</span>
-              <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Saina, Kajiado Central, Kajiado County</span>
+              <span className="flex items-center gap-2"><Phone className="h-4 w-4" /> {c.phone}</span>
+              <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> {c.email}</span>
+              <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {c.address}</span>
             </div>
           </div>
 
           <div>
             <h4 className="font-display font-semibold mb-3">Hours</h4>
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>Mon – Fri: 7:00 AM – 5:00 PM</p>
-              <p>Saturday: 8:00 AM – 12:00 PM</p>
-              <p>Sunday: Closed</p>
+              <p>{c.hoursWeekday}</p>
+              <p>{c.hoursSaturday}</p>
+              <p>{c.hoursSunday}</p>
             </div>
           </div>
         </div>
