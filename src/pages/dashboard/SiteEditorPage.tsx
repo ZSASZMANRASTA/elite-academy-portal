@@ -492,16 +492,18 @@ const SiteEditorPage = () => {
       </div>
 
       <Tabs defaultValue="hero">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="stats">Stats</TabsTrigger>
           <TabsTrigger value="gallery">Gallery</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
+          <TabsTrigger value="contact">Contact Info</TabsTrigger>
         </TabsList>
         <TabsContent value="hero" className="mt-4"><HeroEditor /></TabsContent>
         <TabsContent value="stats" className="mt-4"><StatsEditor /></TabsContent>
         <TabsContent value="gallery" className="mt-4"><GalleryEditor /></TabsContent>
         <TabsContent value="about" className="mt-4"><AboutEditor /></TabsContent>
+        <TabsContent value="contact" className="mt-4"><ContactEditor /></TabsContent>
       </Tabs>
     </div>
   );
