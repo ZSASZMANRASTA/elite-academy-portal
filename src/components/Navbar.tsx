@@ -27,7 +27,7 @@ const Navbar = () => {
             <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="font-display text-lg font-bold text-foreground">
-            Adam's Junior
+            Adams Junior
           </span>
         </Link>
 

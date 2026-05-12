@@ -49,7 +49,7 @@ const Admissions = () => {
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">Admissions</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Join the Adam's Junior family. We welcome learners from Pre-Primary through Grade 9 Junior
+        Join the Adams Junior family. We welcome learners from Pre-Primary through Grade 9 Junior
         Secondary School.
       </p>
 

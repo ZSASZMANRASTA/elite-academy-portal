@@ -39,7 +39,7 @@ const NewsletterSignup = () => {
           <h2 className="font-display text-3xl font-bold">Stay Informed</h2>
         </div>
         <p className="mx-auto mt-2 max-w-lg text-muted-foreground">
-          Subscribe to receive updates on school events, term dates, and important announcements from Adam's Junior Academy.
+          Subscribe to receive updates on school events, term dates, and important announcements from Adams Junior Academy.
         </p>
         <form onSubmit={handleSubmit} className="mx-auto mt-6 flex max-w-md gap-2">
           <Input

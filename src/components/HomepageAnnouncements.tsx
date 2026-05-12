@@ -33,7 +33,7 @@ const HomepageAnnouncements = () => {
         <h2 className="text-center font-display text-3xl font-bold">Announcements</h2>
       </div>
       <p className="mx-auto mt-1 max-w-xl text-center text-muted-foreground mb-10">
-        Stay updated with the latest news from Adam's Junior Academy.
+        Stay updated with the latest news from Adams Junior Academy.
       </p>
       <div className="mx-auto max-w-3xl space-y-4">
         {announcements.map(a => (

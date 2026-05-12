@@ -48,7 +48,7 @@ const Register = () => {
             <GraduationCap className="h-7 w-7 text-primary-foreground" />
           </div>
           <h1 className="mt-4 font-display text-2xl font-bold">Create Account</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Join Adam's Junior Academy</p>
+          <p className="mt-1 text-sm text-muted-foreground">Join Adams Junior Academy</p>
         </div>
 
         <div className="mt-8 rounded-lg border border-border bg-card p-8 shadow-sm">

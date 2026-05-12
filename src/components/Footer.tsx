@@ -15,10 +15,11 @@ const Footer = () => {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
                 <GraduationCap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-display text-lg font-bold">Adam's Junior Academy</span>
+              <span className="font-display text-lg font-bold">Adams Junior Academy</span>
             </div>
+            <p className="text-xs italic text-primary mb-1">Education Liberates</p>
             <p className="text-sm text-muted-foreground">
-              A CBC Comprehensive School nurturing learners from Kindergarten through Grade 9 JSS in Saina, Kajiado Central.
+              Academic Superiority Upbringing with Passion. A CBC school in Kajiado nurturing learners from PP1 through Grade 9 since 2013.
             </p>
           </div>
 
@@ -53,7 +54,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Adam's Junior Academy. All rights reserved.
+          © {new Date().getFullYear()} Adams Junior Academy. All rights reserved.
         </div>
       </div>
     </footer>

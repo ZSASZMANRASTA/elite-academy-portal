@@ -9,10 +9,10 @@ import { Users, Trophy, BookOpen, Award, Star } from "lucide-react";
 import { useSiteContent, StatItem } from "@/hooks/useSiteContent";
 
 const defaultStats: StatItem[] = [
-  { value: "1,200+", label: "Learners (PP1–Grade 9)", icon: "Users" },
-  { value: "100%", label: "KPSEA Transition Rate", icon: "Trophy" },
-  { value: "56", label: "Specialist & Primary Teachers", icon: "BookOpen" },
-  { value: "15+", label: "Years of Excellence", icon: "Award" },
+  { value: "384", label: "Pupils (PP1–Grade 9)", icon: "Users" },
+  { value: "Since 2013", label: "Serving Kajiado", icon: "Trophy" },
+  { value: "PP1 → G9", label: "Full CBC Pathway", icon: "BookOpen" },
+  { value: "8", label: "Core Values", icon: "Award" },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -35,14 +35,13 @@ const Index = () => {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="container text-center">
             <h1 className="font-display text-4xl font-extrabold tracking-tight text-card md:text-6xl animate-fade-in">
-              Excellence in Education
+              Education Liberates
             </h1>
             <p
               className="mx-auto mt-4 max-w-xl text-lg text-card/90 animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              Adam's Junior Academy — a Comprehensive School nurturing learners from Kindergarten
-              through Grade 9 JSS under Kenya's CBC.
+              Adams Junior Academy — Academic Superiority Upbringing with Passion. A CBC school in Kajiado nurturing learners from PP1 through Grade 9 since 2013.
             </p>
             <div
               className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in"
@@ -81,7 +80,7 @@ const Index = () => {
       {/* Why Choose Us */}
       <section className="container py-20">
         <h2 className="text-center font-display text-3xl font-bold">
-          Why Adam's Junior Academy?
+          Why Adams Junior Academy?
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
           As a CBC Comprehensive School, we provide a seamless 11-year learning journey — combining
@@ -132,7 +131,7 @@ const Index = () => {
       <section className="bg-primary py-16">
         <div className="container text-center">
           <h2 className="font-display text-3xl font-bold text-primary-foreground">
-            Ready to Join Adam's Junior Academy?
+            Ready to Join Adams Junior Academy?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-primary-foreground/80">
             Applications are open for PP1 through Grade 9. Give your child the gift of a

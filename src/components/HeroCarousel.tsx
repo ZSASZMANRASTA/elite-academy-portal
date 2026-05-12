@@ -5,7 +5,7 @@ import heroLab from "@/assets/hero-lab.jpg";
 import heroSports from "@/assets/hero-sports.jpg";
 
 const defaultSlides: HeroSlide[] = [
-  { src: heroSchool, alt: "Adam's Junior Academy campus" },
+  { src: heroSchool, alt: "Adams Junior Academy campus" },
   { src: heroLab, alt: "Students in science laboratory" },
   { src: heroSports, alt: "Students playing sports" },
 ];

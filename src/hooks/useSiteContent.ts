@@ -37,13 +37,13 @@ export interface ContactInfo {
 }
 
 export const defaultContactInfo: ContactInfo = {
-  phone: "+254 700 123 456",
+  phone: "0712 674 789",
   email: "info@adamsjunior.ac.ke",
-  address: "Saina, Kajiado Central, Kajiado County",
-  hoursWeekday: "Mon – Fri: 7:00 AM – 5:00 PM",
+  address: "P.O. Box 179 - 01100, Kajiado",
+  hoursWeekday: "Mon – Fri: 7:00 AM – 4:30 PM (Upper) · 7:30 AM – 4:00 PM (Lower & PP1/PP2)",
   hoursSaturday: "Saturday: 8:00 AM – 12:00 PM",
   hoursSunday: "Sunday: Closed",
-  mapEmbedUrl: "https://maps.google.com/maps?q=-1.833460,36.791718&z=17&output=embed",
+  mapEmbedUrl: "https://maps.google.com/maps?q=Kajiado&z=13&output=embed",
 };
 
 export interface AboutContent {
