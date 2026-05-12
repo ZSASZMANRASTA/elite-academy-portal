@@ -12,10 +12,24 @@ import {
 import { toast } from "sonner";
 
 const defaultFees = [
-  { level: "PP1 – PP2", tuition: "15,000", lunch: "8,000", total: "23,000" },
-  { level: "Grade 1 – 3", tuition: "18,000", lunch: "8,000", total: "26,000" },
-  { level: "Grade 4 – 6", tuition: "22,000", lunch: "8,000", total: "30,000" },
-  { level: "Grade 7 – 9 (JSS)", tuition: "28,000", lunch: "10,000", total: "38,000" },
+  { level: "Playgroup / PP1 / PP2", tuition: "7,000" },
+  { level: "Grade 1 – 3", tuition: "9,000" },
+  { level: "Grade 4 – 6", tuition: "9,500" },
+  { level: "Grade 7 – 9 (JSS)", tuition: "12,500" },
+];
+
+const additionalCharges = [
+  { item: "Food (optional)", amount: "3,500 per term" },
+  { item: "Transport (One Way)", amount: "6,500 per term" },
+  { item: "Transport (Two Way – Town)", amount: "7,000 per term" },
+  { item: "Transport (Two Way – UMWA / HOSI)", amount: "8,000 per term" },
+  { item: "Admission", amount: "1,000 (One-time)" },
+  { item: "School Diary", amount: "150" },
+  { item: "Activity Fee", amount: "500 per term" },
+  { item: "Exercise Books", amount: "500 per term (1,500 per year)" },
+  { item: "Computer (Compulsory Grade 1–9)", amount: "1,000 per term" },
+  { item: "Assessment Tools (PP1 – Grade 9)", amount: "300 per term" },
+  { item: "Interviews (Cash)", amount: "1,000" },
 ];
 
 const gradeOptions = [
