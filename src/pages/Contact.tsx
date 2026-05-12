@@ -26,7 +26,7 @@ const Contact = () => {
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">Contact Us</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Get in touch with Adam's Junior Academy. We'd love to hear from you.
+        Get in touch with Adams Junior Academy. We'd love to hear from you.
       </p>
 
       <div className="mt-12 grid gap-12 lg:grid-cols-2">
@@ -65,7 +65,7 @@ const Contact = () => {
           {c.mapEmbedUrl && (
             <div className="mt-8 overflow-hidden rounded-lg border border-border">
               <iframe
-                title="Adam's Junior Academy Location"
+                title="Adams Junior Academy Location"
                 src={c.mapEmbedUrl}
                 width="100%"
                 height="280"

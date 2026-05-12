@@ -41,7 +41,7 @@ const Index = () => {
               className="mx-auto mt-4 max-w-xl text-lg text-card/90 animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              Adam's Junior Academy — a Comprehensive School nurturing learners from Kindergarten
+              Adams Junior Academy — a Comprehensive School nurturing learners from Kindergarten
               through Grade 9 JSS under Kenya's CBC.
             </p>
             <div
@@ -81,7 +81,7 @@ const Index = () => {
       {/* Why Choose Us */}
       <section className="container py-20">
         <h2 className="text-center font-display text-3xl font-bold">
-          Why Adam's Junior Academy?
+          Why Adams Junior Academy?
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
           As a CBC Comprehensive School, we provide a seamless 11-year learning journey — combining
@@ -132,7 +132,7 @@ const Index = () => {
       <section className="bg-primary py-16">
         <div className="container text-center">
           <h2 className="font-display text-3xl font-bold text-primary-foreground">
-            Ready to Join Adam's Junior Academy?
+            Ready to Join Adams Junior Academy?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-primary-foreground/80">
             Applications are open for PP1 through Grade 9. Give your child the gift of a

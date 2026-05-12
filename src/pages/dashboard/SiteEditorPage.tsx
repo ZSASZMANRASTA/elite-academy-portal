@@ -18,7 +18,7 @@ import heroLab from "@/assets/hero-lab.jpg";
 import heroSports from "@/assets/hero-sports.jpg";
 
 const defaultHero: HeroSlide[] = [
-  { src: heroSchool, alt: "Adam's Junior Academy campus", caption: "" },
+  { src: heroSchool, alt: "Adams Junior Academy campus", caption: "" },
   { src: heroLab, alt: "Students in science laboratory", caption: "" },
   { src: heroSports, alt: "Students playing sports", caption: "" },
 ];
@@ -40,7 +40,7 @@ const defaultGallery: GalleryPhoto[] = [
 ];
 
 const defaultAbout: AboutContent = {
-  description: "Adam's Junior Academy is a Comprehensive School in Saina, Kajiado Central, offering a complete 11-year learning journey from Kindergarten (PP1) through Grade 9 Junior Secondary School under Kenya's Competency-Based Curriculum (CBC).",
+  description: "Adams Junior Academy is a Comprehensive School in Saina, Kajiado Central, offering a complete 11-year learning journey from Kindergarten (PP1) through Grade 9 Junior Secondary School under Kenya's Competency-Based Curriculum (CBC).",
   mission: "To provide quality, affordable CBC education that nurtures every learner's competencies, moral integrity, and leadership skills — preparing them to excel in Senior School and beyond.",
   vision: "To be a centre of excellence in competency-based education, producing well-rounded graduates who are innovative, responsible, and ready to make a positive impact in society.",
   academicStructure: [

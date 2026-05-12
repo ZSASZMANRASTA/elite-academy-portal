@@ -97,7 +97,7 @@ const DashboardLayout = () => {
       >
         <div className="flex h-16 items-center gap-2 border-b border-border px-6">
           <GraduationCap className="h-6 w-6 text-primary" />
-          <span className="font-display text-lg font-bold">Adam's Junior</span>
+          <span className="font-display text-lg font-bold">Adams Junior</span>
         </div>
 
         <nav className="mt-4 flex flex-col gap-1 px-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 14rem)" }}>
@@ -170,7 +170,7 @@ const DashboardLayout = () => {
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
               <Menu className="h-6 w-6" />
             </button>
-            <span className="font-display font-bold lg:hidden">Adam's Junior</span>
+            <span className="font-display font-bold lg:hidden">Adams Junior</span>
           </div>
           {/* Bell icon in header */}
           <Link to="/dashboard/notifications" className="relative">
