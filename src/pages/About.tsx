@@ -2,19 +2,19 @@ import { Users, Target, Eye, Building2 } from "lucide-react";
 import { useSiteContent, AboutContent } from "@/hooks/useSiteContent";
 
 const defaultAbout: AboutContent = {
-  description: "Adams Junior Academy is a Comprehensive School in Saina, Kajiado Central, offering a complete 11-year learning journey from Kindergarten (PP1) through Grade 9 Junior Secondary School under Kenya's Competency-Based Curriculum (CBC).",
-  mission: "To provide quality, affordable CBC education that nurtures every learner's competencies, moral integrity, and leadership skills — preparing them to excel in Senior School and beyond.",
-  vision: "To be a centre of excellence in competency-based education, producing well-rounded graduates who are innovative, responsible, and ready to make a positive impact in society.",
+  description: "Adams Junior Academy is a CBC school based in Kajiado, founded in 2013 with the vision of bringing quality, accessible education closer to young learners. Today we are home to 384 girls and boys across PP1 to Grade 9, guided by our motto — Education Liberates.",
+  mission: "To empower children to recognize and optimize their full potential — academically, spiritually, and socially.",
+  vision: "To build character and instill discipline by providing a safe, caring environment where children develop the skills and values to rejoin their communities with success.",
   academicStructure: [
-    { phase: "Early Years Education", grades: "PP1, PP2, Grades 1–3", desc: "Building foundational literacy, numeracy, and social skills through play-based and activity-driven learning." },
-    { phase: "Upper Primary (Middle School I)", grades: "Grades 4–6", desc: "Deepening competencies across subjects. Learners sit the KPSEA at the end of Grade 6 for assessment and transition." },
-    { phase: "Junior Secondary School (Middle School II)", grades: "Grades 7–9", desc: "Specialist-taught subjects including Integrated Science, Pre-Technical Studies, and Agriculture. Continuous School-Based Assessments (SBAs) count 40% toward Senior School placement." },
+    { phase: "Pre-Primary (PP1 & PP2)", grades: "Ages 4–6", desc: "Foundational literacy, numeracy and social skills through play-based learning. Hours: 7:30 AM – 4:00 PM." },
+    { phase: "Lower & Upper Primary", grades: "Grades 1–6", desc: "Pupil-centred teaching in English with practical activities, experiments and math symposiums. KPSEA assessment at end of Grade 6." },
+    { phase: "Junior Secondary School", grades: "Grades 7–9", desc: "Specialist subjects with continuous SBAs. Upper-class hours: 7:00 AM – 4:30 PM." },
   ],
   team: [
-    { name: "Mr. Daniel Kipkoech", role: "Principal", initials: "DK" },
-    { name: "Mrs. Grace Mutua", role: "Deputy Principal (Primary)", initials: "GM" },
-    { name: "Mr. James Ochieng", role: "Deputy Principal (JSS)", initials: "JO" },
-    { name: "Mrs. Sarah Wanjiku", role: "Head of Early Years", initials: "SW" },
+    { name: "Mary Njambi", role: "Director", initials: "MN" },
+    { name: "Mr. Adam Mwangi", role: "Manager", initials: "AM" },
+    { name: "Tr. Vincent", role: "Head of Languages", initials: "TV" },
+    { name: "Tr. Saumu", role: "Head of I.R.E.", initials: "TS" },
   ],
 };
 
