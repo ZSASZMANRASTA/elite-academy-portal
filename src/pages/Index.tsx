@@ -35,14 +35,13 @@ const Index = () => {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="container text-center">
             <h1 className="font-display text-4xl font-extrabold tracking-tight text-card md:text-6xl animate-fade-in">
-              Excellence in Education
+              Education Liberates
             </h1>
             <p
               className="mx-auto mt-4 max-w-xl text-lg text-card/90 animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              Adams Junior Academy — a Comprehensive School nurturing learners from Kindergarten
-              through Grade 9 JSS under Kenya's CBC.
+              Adams Junior Academy — Academic Superiority Upbringing with Passion. A CBC school in Kajiado nurturing learners from PP1 through Grade 9 since 2013.
             </p>
             <div
               className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in"
