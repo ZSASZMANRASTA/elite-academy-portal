@@ -243,18 +243,21 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          stream: string | null
           teacher_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
+          stream?: string | null
           teacher_id: string
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          stream?: string | null
           teacher_id?: string
         }
         Relationships: []
@@ -771,6 +774,271 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      school_holidays: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      school_terms: {
+        Row: {
+          academic_year: string
+          created_at: string
+          end_date: string
+          id: string
+          include_saturday: boolean
+          start_date: string
+          term_name: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          end_date: string
+          id?: string
+          include_saturday?: boolean
+          start_date: string
+          term_name: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          include_saturday?: boolean
+          start_date?: string
+          term_name?: string
+        }
+        Relationships: []
+      }
+      shop_bundle_items: {
+        Row: {
+          bundle_id: string
+          id: string
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          bundle_id: string
+          id?: string
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          bundle_id?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "shop_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_bundle_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_bundles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      shop_order_items: {
+        Row: {
+          bundle_id: string | null
+          id: string
+          item_name: string
+          order_id: string
+          product_id: string | null
+          quantity: number
+          unit_price: number
+          variant: string | null
+        }
+        Insert: {
+          bundle_id?: string | null
+          id?: string
+          item_name: string
+          order_id: string
+          product_id?: string | null
+          quantity?: number
+          unit_price?: number
+          variant?: string | null
+        }
+        Update: {
+          bundle_id?: string | null
+          id?: string
+          item_name?: string
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          unit_price?: number
+          variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_order_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "shop_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "shop_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_orders: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          notes: string | null
+          payment_method: string
+          status: string
+          total: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      shop_products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          download_url: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_digital: boolean
+          is_donation: boolean
+          name: string
+          price: number
+          stock_quantity: number
+          updated_at: string
+          variants: Json
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_digital?: boolean
+          is_donation?: boolean
+          name: string
+          price?: number
+          stock_quantity?: number
+          updated_at?: string
+          variants?: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_digital?: boolean
+          is_donation?: boolean
+          name?: string
+          price?: number
+          stock_quantity?: number
+          updated_at?: string
+          variants?: Json
+        }
+        Relationships: []
       }
       site_content: {
         Row: {
