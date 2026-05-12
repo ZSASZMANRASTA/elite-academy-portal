@@ -9,10 +9,10 @@ import { Users, Trophy, BookOpen, Award, Star } from "lucide-react";
 import { useSiteContent, StatItem } from "@/hooks/useSiteContent";
 
 const defaultStats: StatItem[] = [
-  { value: "1,200+", label: "Learners (PP1–Grade 9)", icon: "Users" },
-  { value: "100%", label: "KPSEA Transition Rate", icon: "Trophy" },
-  { value: "56", label: "Specialist & Primary Teachers", icon: "BookOpen" },
-  { value: "15+", label: "Years of Excellence", icon: "Award" },
+  { value: "384", label: "Pupils (PP1–Grade 9)", icon: "Users" },
+  { value: "Since 2013", label: "Serving Kajiado", icon: "Trophy" },
+  { value: "PP1 → G9", label: "Full CBC Pathway", icon: "BookOpen" },
+  { value: "8", label: "Core Values", icon: "Award" },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
