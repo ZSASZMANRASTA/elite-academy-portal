@@ -12,10 +12,24 @@ import {
 import { toast } from "sonner";
 
 const defaultFees = [
-  { level: "PP1 – PP2", tuition: "15,000", lunch: "8,000", total: "23,000" },
-  { level: "Grade 1 – 3", tuition: "18,000", lunch: "8,000", total: "26,000" },
-  { level: "Grade 4 – 6", tuition: "22,000", lunch: "8,000", total: "30,000" },
-  { level: "Grade 7 – 9 (JSS)", tuition: "28,000", lunch: "10,000", total: "38,000" },
+  { level: "Playgroup / PP1 / PP2", tuition: "7,000" },
+  { level: "Grade 1 – 3", tuition: "9,000" },
+  { level: "Grade 4 – 6", tuition: "9,500" },
+  { level: "Grade 7 – 9 (JSS)", tuition: "12,500" },
+];
+
+const additionalCharges = [
+  { item: "Food (optional)", amount: "3,500 per term" },
+  { item: "Transport (One Way)", amount: "6,500 per term" },
+  { item: "Transport (Two Way – Town)", amount: "7,000 per term" },
+  { item: "Transport (Two Way – UMWA / HOSI)", amount: "8,000 per term" },
+  { item: "Admission", amount: "1,000 (One-time)" },
+  { item: "School Diary", amount: "150" },
+  { item: "Activity Fee", amount: "500 per term" },
+  { item: "Exercise Books", amount: "500 per term (1,500 per year)" },
+  { item: "Computer (Compulsory Grade 1–9)", amount: "1,000 per term" },
+  { item: "Assessment Tools (PP1 – Grade 9)", amount: "300 per term" },
+  { item: "Interviews (Cash)", amount: "1,000" },
 ];
 
 const gradeOptions = [
@@ -80,24 +94,41 @@ const Admissions = () => {
             </li>
           </ul>
 
-          <h2 className="mt-10 font-display text-xl font-bold">Fee Structure (KES per term)</h2>
+          <h2 className="mt-10 font-display text-xl font-bold">School Fees per Term (KES)</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Fee Structure – Term 1, 2 &amp; 3, 2026 Academic Year</p>
           <div className="mt-4 overflow-hidden rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-4 py-3 text-left font-display font-semibold">Level</th>
-                  <th className="px-4 py-3 text-right font-display font-semibold">Tuition</th>
-                  <th className="px-4 py-3 text-right font-display font-semibold">Lunch</th>
-                  <th className="px-4 py-3 text-right font-display font-semibold">Total</th>
+                  <th className="px-4 py-3 text-left font-display font-semibold">Class Category</th>
+                  <th className="px-4 py-3 text-right font-display font-semibold">Fees (KES)</th>
                 </tr>
               </thead>
               <tbody>
                 {defaultFees.map((row) => (
                   <tr key={row.level} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{row.level}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{row.tuition}</td>
-                    <td className="px-4 py-3 text-right text-muted-foreground">{row.lunch}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{row.total}</td>
+                    <td className="px-4 py-3 text-right font-semibold">{row.tuition}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 className="mt-8 font-display text-lg font-bold">Additional Charges</h3>
+          <div className="mt-3 overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-left font-display font-semibold">Item</th>
+                  <th className="px-4 py-3 text-right font-display font-semibold">Amount (KES)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {additionalCharges.map((row) => (
+                  <tr key={row.item} className="border-t border-border">
+                    <td className="px-4 py-3 font-medium">{row.item}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">{row.amount}</td>
                   </tr>
                 ))}
               </tbody>
