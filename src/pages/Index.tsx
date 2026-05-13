@@ -100,7 +100,7 @@ const Index = () => {
             },
             {
               title: "Modern Facilities",
-              desc: "Integrated science lab, pre-technical workshop, ICT lab, library, and dedicated early-years play areas.",
+              desc: "Integrated science lab, ICT lab, library, and dedicated early-years play areas.",
               icon: <Trophy className="h-6 w-6" />,
             },
           ].map((item) => (

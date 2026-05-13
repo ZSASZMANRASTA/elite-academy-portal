@@ -55,13 +55,8 @@ const facilities = [
   },
   {
     name: "Library & Resource Centre",
-    desc: "Over 10,000 volumes plus digital resources supporting the CBC curriculum",
+    desc: "Extensive volumes and digital resources supporting the CBC curriculum",
     icon: <BookOpen className="h-6 w-6" />,
-  },
-  {
-    name: "Pre-Technical Workshop",
-    desc: "Equipped for woodwork, metalwork, and hands-on pre-technical projects",
-    icon: <Palette className="h-6 w-6" />,
   },
   {
     name: "Sports Complex",
