@@ -143,37 +143,17 @@ const Admissions = () => {
             </li>
           </ul>
 
-          <h2 className="mt-10 font-display text-xl font-bold">School Fees per Term (KES)</h2>
-          <p className="mt-1 text-xs text-muted-foreground">Fee Structure – Term 1, 2 &amp; 3, 2026 Academic Year</p>
+          <h2 className="mt-10 font-display text-xl font-bold">Fee Structure</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Per term, in KES</p>
           <div className="mt-4 overflow-hidden rounded-lg border border-border">
             <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left font-display font-semibold">Class Category</th>
-                  <th className="px-4 py-3 text-right font-display font-semibold">Fees (KES)</th>
-                </tr>
-              </thead>
               <tbody>
                 {feeRows.map((row) => (
-                  <tr key={row.level} className="border-t border-border">
+                  <tr key={row.level} className="border-t border-border first:border-t-0">
                     <td className="px-4 py-3 font-medium">{row.level}</td>
                     <td className="px-4 py-3 text-right font-semibold">{row.tuition}</td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
-
-          <h3 className="mt-8 font-display text-lg font-bold">Additional Charges</h3>
-          <div className="mt-3 overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left font-display font-semibold">Item</th>
-                  <th className="px-4 py-3 text-right font-display font-semibold">Amount (KES)</th>
-                </tr>
-              </thead>
-              <tbody>
                 {additionalCharges.map((row) => (
                   <tr key={row.item} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{row.item}</td>
