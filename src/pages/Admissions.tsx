@@ -10,17 +10,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
-const defaultFees = [
+const feeRows = [
   { level: "Playgroup / PP1 / PP2", tuition: "7,000" },
   { level: "Grade 1 – 3", tuition: "9,000" },
   { level: "Grade 4 – 6", tuition: "9,500" },
-  { level: "Grade 7 – 9 (JSS)", tuition: "12,500" },
+  { level: "Grade 7 – 9", tuition: "12,500" },
 ];
 
-const defaultAdditionalCharges = [
+const additionalCharges = [
   { item: "Food (optional)", amount: "3,500 per term" },
   { item: "Transport (One Way)", amount: "6,500 per term" },
   { item: "Transport (Two Way – Town)", amount: "7,000 per term" },
@@ -29,7 +27,7 @@ const defaultAdditionalCharges = [
   { item: "School Diary", amount: "150" },
   { item: "Activity Fee", amount: "500 per term" },
   { item: "Exercise Books", amount: "500 per term (1,500 per year)" },
-  { item: "Computer (Compulsory Grade 1–9)", amount: "1,000 per term" },
+  { item: "Computer (Compulsory for Grade 1–9)", amount: "1,000 per term" },
   { item: "Assessment Tools (PP1 – Grade 9)", amount: "300 per term" },
   { item: "Interviews (Cash)", amount: "1,000" },
 ];
@@ -50,53 +48,6 @@ const gradeOptions = [
 
 const Admissions = () => {
   const [loading, setLoading] = useState(false);
-
-  const { data: structures = [] } = useQuery({
-    queryKey: ["public-fee-structures"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("fee_structures")
-        .select("class_name, amount_per_term, lunch_fee, fee_categories, academic_year")
-        .order("class_name");
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 60_000,
-  });
-
-  // Aggregate one row per class_name (use max amount across terms/years)
-  const feeRows = (() => {
-    if (!structures.length) return defaultFees;
-    const map = new Map<string, number>();
-    for (const s of structures as any[]) {
-      const total = (s.amount_per_term || 0) + (s.lunch_fee || 0);
-      const prev = map.get(s.class_name) || 0;
-      if (total > prev) map.set(s.class_name, total);
-    }
-    return Array.from(map.entries()).map(([level, amt]) => ({
-      level,
-      tuition: amt.toLocaleString(),
-    }));
-  })();
-
-  // Aggregate additional charges from fee_categories across structures
-  const additionalCharges = (() => {
-    if (!structures.length) return defaultAdditionalCharges;
-    const map = new Map<string, number>();
-    for (const s of structures as any[]) {
-      const cats = Array.isArray(s.fee_categories) ? s.fee_categories : [];
-      for (const c of cats) {
-        if (!c?.name) continue;
-        const prev = map.get(c.name) || 0;
-        if ((c.amount || 0) > prev) map.set(c.name, c.amount || 0);
-      }
-    }
-    if (map.size === 0) return defaultAdditionalCharges;
-    return Array.from(map.entries()).map(([item, amt]) => ({
-      item,
-      amount: `${amt.toLocaleString()} per term`,
-    }));
-  })();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -143,17 +94,37 @@ const Admissions = () => {
             </li>
           </ul>
 
-          <h2 className="mt-10 font-display text-xl font-bold">Fee Structure</h2>
-          <p className="mt-1 text-xs text-muted-foreground">Per term, in KES</p>
+          <h2 className="mt-10 font-display text-xl font-bold">School Fees per Term</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Fee Structure – Term 1, 2 &amp; 3, 2026 Academic Year</p>
           <div className="mt-4 overflow-hidden rounded-lg border border-border">
             <table className="w-full text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-left font-display font-semibold">Class Category</th>
+                  <th className="px-4 py-3 text-right font-display font-semibold">Fees (KES)</th>
+                </tr>
+              </thead>
               <tbody>
                 {feeRows.map((row) => (
-                  <tr key={row.level} className="border-t border-border first:border-t-0">
+                  <tr key={row.level} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{row.level}</td>
                     <td className="px-4 py-3 text-right font-semibold">{row.tuition}</td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 className="mt-8 font-display text-lg font-bold">Additional Charges</h3>
+          <div className="mt-3 overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-left font-display font-semibold">Item</th>
+                  <th className="px-4 py-3 text-right font-display font-semibold">Amount (KES)</th>
+                </tr>
+              </thead>
+              <tbody>
                 {additionalCharges.map((row) => (
                   <tr key={row.item} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{row.item}</td>
