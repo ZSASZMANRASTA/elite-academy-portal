@@ -154,7 +154,7 @@ const Admissions = () => {
                 </tr>
               </thead>
               <tbody>
-                {defaultFees.map((row) => (
+                {feeRows.map((row) => (
                   <tr key={row.level} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{row.level}</td>
                     <td className="px-4 py-3 text-right font-semibold">{row.tuition}</td>
