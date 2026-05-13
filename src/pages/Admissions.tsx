@@ -51,6 +51,53 @@ const gradeOptions = [
 const Admissions = () => {
   const [loading, setLoading] = useState(false);
 
+  const { data: structures = [] } = useQuery({
+    queryKey: ["public-fee-structures"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_structures")
+        .select("class_name, amount_per_term, lunch_fee, fee_categories, academic_year")
+        .order("class_name");
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+  });
+
+  // Aggregate one row per class_name (use max amount across terms/years)
+  const feeRows = (() => {
+    if (!structures.length) return defaultFees;
+    const map = new Map<string, number>();
+    for (const s of structures as any[]) {
+      const total = (s.amount_per_term || 0) + (s.lunch_fee || 0);
+      const prev = map.get(s.class_name) || 0;
+      if (total > prev) map.set(s.class_name, total);
+    }
+    return Array.from(map.entries()).map(([level, amt]) => ({
+      level,
+      tuition: amt.toLocaleString(),
+    }));
+  })();
+
+  // Aggregate additional charges from fee_categories across structures
+  const additionalCharges = (() => {
+    if (!structures.length) return defaultAdditionalCharges;
+    const map = new Map<string, number>();
+    for (const s of structures as any[]) {
+      const cats = Array.isArray(s.fee_categories) ? s.fee_categories : [];
+      for (const c of cats) {
+        if (!c?.name) continue;
+        const prev = map.get(c.name) || 0;
+        if ((c.amount || 0) > prev) map.set(c.name, c.amount || 0);
+      }
+    }
+    if (map.size === 0) return defaultAdditionalCharges;
+    return Array.from(map.entries()).map(([item, amt]) => ({
+      item,
+      amount: `${amt.toLocaleString()} per term`,
+    }));
+  })();
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
