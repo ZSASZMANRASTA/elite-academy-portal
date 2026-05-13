@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const defaultFees = [
   { level: "Playgroup / PP1 / PP2", tuition: "7,000" },
@@ -18,7 +20,7 @@ const defaultFees = [
   { level: "Grade 7 – 9 (JSS)", tuition: "12,500" },
 ];
 
-const additionalCharges = [
+const defaultAdditionalCharges = [
   { item: "Food (optional)", amount: "3,500 per term" },
   { item: "Transport (One Way)", amount: "6,500 per term" },
   { item: "Transport (Two Way – Town)", amount: "7,000 per term" },
