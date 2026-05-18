@@ -38,7 +38,7 @@ export interface ContactInfo {
 
 export const defaultContactInfo: ContactInfo = {
   phone: "0712 674 789",
-  email: "info@adamsjunior.ac.ke",
+  email: "adamsjunioracademy@gmail.com",
   address: "P.O. Box 179 - 01100, Kajiado",
   hoursWeekday: "Mon – Fri: 7:00 AM – 4:30 PM (Upper) · 7:30 AM – 4:00 PM (Lower & PP1/PP2)",
   hoursSaturday: "Saturday: 8:00 AM – 12:00 PM",
