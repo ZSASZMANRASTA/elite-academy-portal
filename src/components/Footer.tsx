@@ -53,8 +53,9 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Adams Junior Academy. All rights reserved.
+        <div className="mt-8 border-t border-border pt-6 flex items-center justify-between text-sm text-muted-foreground">
+          <span>© {new Date().getFullYear()} Adams Junior Academy. All rights reserved.</span>
+          <Link to="/login" className="hover:text-primary transition-colors text-xs opacity-60 hover:opacity-100">Portal</Link>
         </div>
       </div>
     </footer>

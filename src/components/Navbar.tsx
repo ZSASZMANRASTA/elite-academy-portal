@@ -97,11 +97,6 @@ const Navbar = () => {
                   Admissions
                 </Link>
               </Button>
-              <Button asChild>
-                <Link to="/login" onClick={() => setOpen(false)}>
-                  Student / Teacher Login
-                </Link>
-              </Button>
             </div>
           </div>
         </div>
