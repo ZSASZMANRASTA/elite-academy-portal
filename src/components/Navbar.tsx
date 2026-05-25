@@ -62,9 +62,6 @@ const Navbar = () => {
           <Button variant="accent" asChild>
             <Link to="/admissions">Admissions</Link>
           </Button>
-          <Button asChild>
-            <Link to="/login">Student / Teacher Login</Link>
-          </Button>
         </div>
 
         {/* Mobile toggle */}
