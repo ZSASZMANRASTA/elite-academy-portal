@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Users, UserPlus, ArrowLeft, ArrowRightLeft } from "lucide-react";
+import { Plus, Users, UserPlus, ArrowLeft, ArrowRightLeft, Trash2 } from "lucide-react";
 import StudentDetailDialog from "@/components/StudentDetailDialog";
 
 const ClassesPage = () => {
@@ -28,6 +29,8 @@ const ClassesPage = () => {
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [viewingStudent, setViewingStudent] = useState<any>(null);
   const [studentDetailOpen, setStudentDetailOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<any>(null);
 
   const isTeacherOrAdmin = role === "teacher" || role === "admin";
 
@@ -88,6 +91,23 @@ const ClassesPage = () => {
       toast.success(`Class "${label}" created`);
     },
     onError: (error: any) => toast.error(`Failed to create class: ${error.message}`),
+  });
+
+  const deleteClassMutation = useMutation({
+    mutationFn: async (classId: string) => {
+      const { error } = await supabase
+        .from("classes")
+        .delete()
+        .eq("id", classId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      setDeleteConfirmOpen(false);
+      setClassToDelete(null);
+      toast.success("Class deleted successfully");
+    },
+    onError: (error: any) => toast.error(`Failed to delete class: ${error.message}`),
   });
 
   const createStudentMutation = useMutation({
@@ -388,14 +408,30 @@ const ClassesPage = () => {
                   return (
                     <Card
                       key={c.id}
-                      className="cursor-pointer hover:border-primary/50 transition-colors"
+                      className="cursor-pointer hover:border-primary/50 transition-colors relative group"
                       onClick={() => setSelectedClass(c.id)}
                     >
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          {c.name}
-                          {c.stream && <Badge variant="secondary">{c.stream}</Badge>}
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            {c.name}
+                            {c.stream && <Badge variant="secondary">{c.stream}</Badge>}
+                          </CardTitle>
+                          {isTeacherOrAdmin && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setClassToDelete(c);
+                                setDeleteConfirmOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </CardHeader>
                       <CardContent>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -411,6 +447,33 @@ const ClassesPage = () => {
           ))}
         </div>
       )}
+
+      {/* Delete Class Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Class?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <span className="font-semibold text-foreground">{classToDelete?.name}{classToDelete?.stream ? ` — ${classToDelete.stream}` : ""}</span>?
+              {classToDelete?.class_enrollments?.[0]?.count > 0 && (
+                <p className="mt-2 text-amber-600 font-medium">
+                  ⚠️ This class has {classToDelete.class_enrollments[0].count} student(s) enrolled. They will still be in the system but no longer linked to this class.
+                </p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteClassMutation.mutate(classToDelete.id)}
+              disabled={deleteClassMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteClassMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
