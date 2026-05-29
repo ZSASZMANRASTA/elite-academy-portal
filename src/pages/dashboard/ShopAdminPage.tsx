@@ -2,17 +2,16 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Check, X, Package, ShoppingBag, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Plus, Edit2, Trash2, Check, X, Package, ShoppingBag, CheckCircle, XCircle, Gift } from "lucide-react";
 
 const CATEGORIES = ["uniforms", "stationery", "digital", "events", "donations"];
 
@@ -29,16 +28,29 @@ const BLANK_PRODUCT = {
   variants: [] as { size: string; stock: number }[],
 };
 
+const BLANK_BUNDLE = {
+  name: "", description: "", original_price: "", bundle_price: "",
+  image_url: "", is_active: true, selected_product_ids: [] as string[]
+};
+
 const ShopAdminPage = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("products");
+  
+  // Product State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addingProduct, setAddingProduct] = useState(false);
   const [form, setForm] = useState(BLANK_PRODUCT);
   const [variantInput, setVariantInput] = useState({ size: "", stock: "" });
+  
+  // Bundle State
+  const [editingBundleId, setEditingBundleId] = useState<string | null>(null);
+  const [addingBundle, setAddingBundle] = useState(false);
+  const [bundleForm, setBundleForm] = useState(BLANK_BUNDLE);
+
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (file: File, target: "product" | "bundle" = "product") => {
     if (!file) return;
     if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
@@ -49,7 +61,10 @@ const ShopAdminPage = () => {
       const { error: upErr } = await supabase.storage.from("site-assets").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from("site-assets").getPublicUrl(path);
-      setForm((f) => ({ ...f, image_url: data.publicUrl }));
+      
+      if (target === "product") setForm((f) => ({ ...f, image_url: data.publicUrl }));
+      else setBundleForm((f) => ({ ...f, image_url: data.publicUrl }));
+      
       toast.success("Image uploaded");
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
@@ -58,10 +73,20 @@ const ShopAdminPage = () => {
     }
   };
 
+  // Queries
   const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ["shop-products-admin"],
     queryFn: async () => {
       const { data, error } = await supabase.from("shop_products").select("*").order("category").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: bundles = [], isLoading: loadingBundles } = useQuery({
+    queryKey: ["shop-bundles-admin"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("shop_bundles").select("*, shop_bundle_items(product_id)").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -79,16 +104,23 @@ const ShopAdminPage = () => {
     },
   });
 
+  // Product Mutations
   const upsertProductMutation = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Name is required");
       if (!form.price || isNaN(Number(form.price))) throw new Error("Valid price is required");
+      
+      let calculatedStock = form.is_digital || form.is_donation ? 0 : Number(form.stock_quantity) || 0;
+      if (form.variants.length > 0) {
+        calculatedStock = form.variants.reduce((sum, v) => sum + v.stock, 0); // Auto-sync stock with variants
+      }
+
       const payload: any = {
         name: form.name.trim(),
         description: form.description.trim() || null,
         category: form.category,
         price: Number(form.price),
-        stock_quantity: form.is_digital || form.is_donation ? 0 : Number(form.stock_quantity) || 0,
+        stock_quantity: calculatedStock,
         is_digital: form.is_digital,
         is_donation: form.is_donation,
         is_active: form.is_active,
@@ -128,6 +160,66 @@ const ShopAdminPage = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Bundle Mutations
+  const upsertBundleMutation = useMutation({
+    mutationFn: async () => {
+      if (!bundleForm.name.trim()) throw new Error("Name is required");
+      if (!bundleForm.bundle_price || isNaN(Number(bundleForm.bundle_price))) throw new Error("Valid bundle price required");
+      if (!bundleForm.original_price || isNaN(Number(bundleForm.original_price))) throw new Error("Valid original price required");
+
+      const payload = {
+        name: bundleForm.name.trim(),
+        description: bundleForm.description.trim() || null,
+        original_price: Number(bundleForm.original_price),
+        bundle_price: Number(bundleForm.bundle_price),
+        image_url: bundleForm.image_url.trim() || null,
+        is_active: bundleForm.is_active,
+      };
+
+      let currentBundleId = editingBundleId;
+
+      if (currentBundleId) {
+        const { error } = await supabase.from("shop_bundles").update(payload).eq("id", currentBundleId);
+        if (error) throw error;
+        await supabase.from("shop_bundle_items").delete().eq("bundle_id", currentBundleId);
+      } else {
+        const { data, error } = await supabase.from("shop_bundles").insert(payload).select().single();
+        if (error) throw error;
+        currentBundleId = data.id;
+      }
+
+      if (bundleForm.selected_product_ids.length > 0) {
+        const items = bundleForm.selected_product_ids.map(pid => ({ bundle_id: currentBundleId, product_id: pid }));
+        const { error: itemsErr } = await supabase.from("shop_bundle_items").insert(items);
+        if (itemsErr) throw itemsErr;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shop-bundles-admin"] });
+      queryClient.invalidateQueries({ queryKey: ["shop-bundles"] });
+      setEditingBundleId(null);
+      setAddingBundle(false);
+      setBundleForm(BLANK_BUNDLE);
+      toast.success(editingBundleId ? "Bundle updated" : "Bundle added");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteBundleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await supabase.from("shop_bundle_items").delete().eq("bundle_id", id);
+      const { error } = await supabase.from("shop_bundles").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shop-bundles-admin"] });
+      queryClient.invalidateQueries({ queryKey: ["shop-bundles"] });
+      toast.success("Bundle removed");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Order Mutations
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("shop_orders").update({ status }).eq("id", id);
@@ -140,7 +232,8 @@ const ShopAdminPage = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const startEdit = (p: any) => {
+  // Product Form Actions
+  const startEditProduct = (p: any) => {
     setEditingId(p.id);
     setForm({
       name: p.name, description: p.description ?? "", category: p.category,
@@ -151,16 +244,26 @@ const ShopAdminPage = () => {
     });
     setAddingProduct(false);
   };
-
   const addVariant = () => {
     if (!variantInput.size.trim()) return;
     setForm((f) => ({ ...f, variants: [...f.variants, { size: variantInput.size.trim(), stock: Number(variantInput.stock) || 0 }] }));
     setVariantInput({ size: "", stock: "" });
   };
-
   const removeVariant = (idx: number) => setForm((f) => ({ ...f, variants: f.variants.filter((_, i) => i !== idx) }));
+  const cancelEditProduct = () => { setEditingId(null); setAddingProduct(false); setForm(BLANK_PRODUCT); };
 
-  const cancelEdit = () => { setEditingId(null); setAddingProduct(false); setForm(BLANK_PRODUCT); };
+  // Bundle Form Actions
+  const startEditBundle = (b: any) => {
+    setEditingBundleId(b.id);
+    setBundleForm({
+      name: b.name, description: b.description ?? "",
+      original_price: String(b.original_price), bundle_price: String(b.bundle_price),
+      image_url: b.image_url ?? "", is_active: b.is_active,
+      selected_product_ids: (b.shop_bundle_items ?? []).map((item: any) => item.product_id),
+    });
+    setAddingBundle(false);
+  };
+  const cancelEditBundle = () => { setEditingBundleId(null); setAddingBundle(false); setBundleForm(BLANK_BUNDLE); };
 
   const ProductForm = () => (
     <div className="rounded-lg border border-dashed p-4 space-y-4 bg-muted/30">
@@ -210,13 +313,12 @@ const ShopAdminPage = () => {
           )}
           <div className="flex flex-col gap-1.5">
             <Input
-              type="file"
-              accept="image/*"
+              type="file" accept="image/*"
               className="h-9 text-xs file:mr-2 file:rounded file:border-0 file:bg-primary file:px-2 file:py-1 file:text-xs file:text-primary-foreground"
               disabled={uploadingImage}
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleImageUpload(file);
+                if (file) handleImageUpload(file, "product");
                 e.target.value = "";
               }}
             />
@@ -231,7 +333,6 @@ const ShopAdminPage = () => {
           </div>
         </div>
       </div>
-      {/* Variants (sizes) */}
       {!form.is_digital && !form.is_donation && (
         <div>
           <Label className="text-xs">Size Variants (optional — for uniforms)</Label>
@@ -276,7 +377,104 @@ const ShopAdminPage = () => {
         <Button size="sm" className="gap-1 h-8" onClick={() => upsertProductMutation.mutate()} disabled={upsertProductMutation.isPending}>
           <Check className="h-3.5 w-3.5" /> {upsertProductMutation.isPending ? "Saving..." : "Save Product"}
         </Button>
-        <Button size="sm" variant="ghost" className="gap-1 h-8" onClick={cancelEdit}><X className="h-3.5 w-3.5" /> Cancel</Button>
+        <Button size="sm" variant="ghost" className="gap-1 h-8" onClick={cancelEditProduct}><X className="h-3.5 w-3.5" /> Cancel</Button>
+      </div>
+    </div>
+  );
+
+  const BundleForm = () => (
+    <div className="rounded-lg border border-primary/40 p-4 space-y-4 bg-primary/5">
+      <p className="text-xs font-semibold text-primary uppercase tracking-wide">
+        {editingBundleId ? "Edit Value Bundle" : "New Value Bundle"}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Bundle Name *</Label>
+          <Input className="mt-1 h-9 bg-background" value={bundleForm.name} onChange={(e) => setBundleForm({ ...bundleForm, name: e.target.value })} placeholder="e.g. Back to School Pack" />
+        </div>
+        <div>
+          <Label className="text-xs">Description</Label>
+          <Input className="mt-1 h-9 bg-background" value={bundleForm.description} onChange={(e) => setBundleForm({ ...bundleForm, description: e.target.value })} placeholder="Brief description..." />
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Original Value (KES) *</Label>
+          <Input className="mt-1 h-9 bg-background line-through text-muted-foreground" type="number" min="0" value={bundleForm.original_price} onChange={(e) => setBundleForm({ ...bundleForm, original_price: e.target.value })} placeholder="Total without discount" />
+        </div>
+        <div>
+          <Label className="text-xs text-primary font-medium">Bundle Price (KES) *</Label>
+          <Input className="mt-1 h-9 bg-background font-bold" type="number" min="0" value={bundleForm.bundle_price} onChange={(e) => setBundleForm({ ...bundleForm, bundle_price: e.target.value })} placeholder="Discounted price" />
+        </div>
+      </div>
+      <div>
+        <Label className="text-xs">Included Products</Label>
+        <div className="flex flex-wrap gap-2 mt-2 p-3 bg-background border rounded-md max-h-48 overflow-y-auto">
+          {products.filter((p: any) => p.is_active).map((p: any) => {
+            const isSelected = bundleForm.selected_product_ids.includes(p.id);
+            return (
+              <Badge
+                key={p.id}
+                variant={isSelected ? "default" : "outline"}
+                className="cursor-pointer transition-colors"
+                onClick={() => {
+                  setBundleForm(f => ({
+                    ...f,
+                    selected_product_ids: isSelected 
+                      ? f.selected_product_ids.filter(id => id !== p.id) 
+                      : [...f.selected_product_ids, p.id]
+                  }))
+                }}
+              >
+                {isSelected && <Check className="h-3 w-3 mr-1" />}
+                {p.name}
+              </Badge>
+            )
+          })}
+          {products.length === 0 && <span className="text-xs text-muted-foreground">Add products first before making a bundle.</span>}
+        </div>
+      </div>
+      <div>
+        <Label className="text-xs">Bundle Banner Image</Label>
+        <div className="mt-1 flex items-center gap-3">
+          {bundleForm.image_url ? (
+            <img src={bundleForm.image_url} alt="Preview" className="h-16 w-24 rounded-md object-cover border" />
+          ) : (
+            <div className="h-16 w-24 rounded-md border border-dashed flex items-center justify-center bg-background">
+              <Gift className="h-5 w-5 text-muted-foreground" />
+            </div>
+          )}
+          <div className="flex flex-col gap-1.5">
+            <Input
+              type="file" accept="image/*"
+              className="h-9 text-xs bg-background file:mr-2 file:rounded file:border-0 file:bg-primary file:px-2 file:py-1 file:text-xs file:text-primary-foreground"
+              disabled={uploadingImage}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImageUpload(file, "bundle");
+                e.target.value = "";
+              }}
+            />
+            <div className="flex items-center gap-2">
+              {uploadingImage && <span className="text-xs text-muted-foreground">Uploading...</span>}
+              {bundleForm.image_url && !uploadingImage && (
+                <button type="button" onClick={() => setBundleForm({ ...bundleForm, image_url: "" })} className="text-xs text-destructive hover:underline">
+                  Remove image
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Switch id="bundle_active" checked={bundleForm.is_active} onCheckedChange={(v) => setBundleForm({ ...bundleForm, is_active: v })} />
+        <Label htmlFor="bundle_active" className="text-sm cursor-pointer">Active (visible in shop)</Label>
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" className="gap-1 h-8" onClick={() => upsertBundleMutation.mutate()} disabled={upsertBundleMutation.isPending}>
+          <Check className="h-3.5 w-3.5" /> {upsertBundleMutation.isPending ? "Saving..." : "Save Bundle"}
+        </Button>
+        <Button size="sm" variant="ghost" className="gap-1 h-8" onClick={cancelEditBundle}><X className="h-3.5 w-3.5" /> Cancel</Button>
       </div>
     </div>
   );
@@ -288,16 +486,23 @@ const ShopAdminPage = () => {
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold">Shop Management</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage products, stock, and customer orders.</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage products, value bundles, and customer orders.</p>
       </div>
 
       {/* Summary cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="pt-4 pb-4">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Products</p>
             <p className="text-2xl font-bold mt-1">{products.length}</p>
             <p className="text-xs text-muted-foreground">{products.filter((p: any) => p.is_active).length} active</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Value Bundles</p>
+            <p className="text-2xl font-bold mt-1 text-primary">{bundles.length}</p>
+            <p className="text-xs text-muted-foreground">{bundles.filter((b: any) => b.is_active).length} active</p>
           </CardContent>
         </Card>
         <Card>
@@ -319,6 +524,7 @@ const ShopAdminPage = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="products" className="gap-1.5"><Package className="h-3.5 w-3.5" />Products</TabsTrigger>
+          <TabsTrigger value="bundles" className="gap-1.5"><Gift className="h-3.5 w-3.5" />Bundles</TabsTrigger>
           <TabsTrigger value="orders" className="gap-1.5">
             <ShoppingBag className="h-3.5 w-3.5" />Orders
             {pendingCount > 0 && <Badge className="h-4 px-1 text-xs ml-1">{pendingCount}</Badge>}
@@ -360,10 +566,10 @@ const ShopAdminPage = () => {
                       <TableCell className="capitalize">{p.category}</TableCell>
                       <TableCell>KES {Number(p.price).toLocaleString()}</TableCell>
                       <TableCell>
-                        {p.is_digital ? <Badge variant="outline" className="text-xs">Digital</Badge>
-                          : p.is_donation ? <Badge variant="outline" className="text-xs">Donation</Badge>
+                        {p.is_digital ? <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300">Digital</Badge>
+                          : p.is_donation ? <Badge variant="outline" className="text-xs bg-pink-50 text-pink-700 dark:bg-pink-900 dark:text-pink-300">Donation</Badge>
                           : (p.variants?.length > 0)
-                            ? <span className="text-xs">{p.variants.reduce((s: number, v: any) => s + v.stock, 0)} (sized)</span>
+                            ? <span className="text-xs">{p.stock_quantity} (across {p.variants.length} sizes)</span>
                             : p.stock_quantity}
                       </TableCell>
                       <TableCell>
@@ -373,7 +579,7 @@ const ShopAdminPage = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(p)}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEditProduct(p)}>
                             <Edit2 className="h-3.5 w-3.5" />
                           </Button>
                           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deleteProductMutation.mutate(p.id)} disabled={deleteProductMutation.isPending}>
@@ -389,12 +595,68 @@ const ShopAdminPage = () => {
           )}
         </TabsContent>
 
+        {/* Bundles tab */}
+        <TabsContent value="bundles" className="space-y-4 mt-4">
+          {!addingBundle && !editingBundleId && (
+            <Button size="sm" variant="outline" className="gap-1.5 text-primary border-primary/30" onClick={() => { setAddingBundle(true); setBundleForm(BLANK_BUNDLE); }}>
+              <Plus className="h-3.5 w-3.5" /> Create Value Bundle
+            </Button>
+          )}
+          {(addingBundle || editingBundleId) && <BundleForm />}
+          {loadingBundles ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Loading bundles...</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {bundles.length === 0 ? (
+                 <div className="col-span-full text-center py-12 text-muted-foreground border rounded-lg border-dashed">
+                   <Gift className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                   <p>No value bundles created yet.</p>
+                 </div>
+              ) : bundles.map((b: any) => {
+                const itemCount = (b.shop_bundle_items || []).length;
+                const savings = b.original_price - b.bundle_price;
+                const savingsPct = Math.round((savings / b.original_price) * 100);
+                
+                return (
+                  <Card key={b.id} className={`overflow-hidden ${editingBundleId === b.id ? 'border-primary shadow-sm' : ''}`}>
+                    {b.image_url && <div className="h-24 w-full"><img src={b.image_url} alt={b.name} className="h-full w-full object-cover" /></div>}
+                    <CardContent className="pt-4 pb-3">
+                      <div className="flex justify-between items-start gap-2">
+                        <div>
+                          <h3 className="font-semibold">{b.name}</h3>
+                          <p className="text-xs text-muted-foreground mt-0.5">{itemCount} products included</p>
+                        </div>
+                        <Badge variant={b.is_active ? "default" : "secondary"} className="shrink-0">{b.is_active ? "Active" : "Hidden"}</Badge>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between bg-muted/50 p-2 rounded-md">
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase line-through">KES {b.original_price.toLocaleString()}</p>
+                          <p className="text-sm font-bold text-primary">KES {b.bundle_price.toLocaleString()}</p>
+                        </div>
+                        <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0 text-xs">-{savingsPct}%</Badge>
+                      </div>
+                      <div className="mt-3 flex gap-2 justify-end border-t pt-3">
+                        <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => startEditBundle(b)}>
+                          <Edit2 className="h-3 w-3" /> Edit
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deleteBundleMutation.mutate(b.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
         {/* Orders tab */}
         <TabsContent value="orders" className="space-y-4 mt-4">
           {loadingOrders ? (
             <p className="text-sm text-muted-foreground text-center py-8">Loading orders...</p>
           ) : orders.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-12 text-muted-foreground border rounded-lg border-dashed">
               <ShoppingBag className="h-10 w-10 mx-auto mb-3 opacity-30" />
               <p>No orders yet</p>
             </div>
@@ -414,7 +676,7 @@ const ShopAdminPage = () => {
                         <p className="text-xs text-muted-foreground mt-0.5">{new Date(o.created_at).toLocaleString("en-KE")} · {o.payment_method.replace(/_/g, " ")}</p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {(o.shop_order_items ?? []).map((item: any, i: number) => (
-                            <Badge key={i} variant="outline" className="text-xs">
+                            <Badge key={i} variant="outline" className="text-xs bg-muted/50">
                               {item.item_name}{item.variant ? ` (${item.variant})` : ""} ×{item.quantity}
                             </Badge>
                           ))}
