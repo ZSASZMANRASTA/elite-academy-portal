@@ -538,7 +538,7 @@ const ShopAdminPage = () => {
               <Plus className="h-3.5 w-3.5" /> Add Product
             </Button>
           )}
-          {(addingProduct || editingId) && <ProductForm />}
+          {(addingProduct || editingId) && ProductForm()}
           {loadingProducts ? (
             <p className="text-sm text-muted-foreground text-center py-8">Loading products...</p>
           ) : (
@@ -602,7 +602,7 @@ const ShopAdminPage = () => {
               <Plus className="h-3.5 w-3.5" /> Create Value Bundle
             </Button>
           )}
-          {(addingBundle || editingBundleId) && <BundleForm />}
+          {(addingBundle || editingBundleId) && BundleForm()}
           {loadingBundles ? (
             <p className="text-sm text-muted-foreground text-center py-8">Loading bundles...</p>
           ) : (
