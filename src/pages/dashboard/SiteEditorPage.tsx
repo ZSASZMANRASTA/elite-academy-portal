@@ -306,7 +306,7 @@ function GalleryEditor() {
     }
   };
 
-  const addPhoto = () => setItems([...current, { src: "", alt: "", label: "" }]);
+  const addPhoto = () => setItems([{ src: "", alt: "", label: "" }, ...current]);
   const removePhoto = (idx: number) => setItems(current.filter((_, i) => i !== idx));
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
