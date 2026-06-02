@@ -313,7 +313,14 @@ function GalleryEditor() {
 
   return (
     <div className="space-y-4">
+      <div className="flex gap-2 sticky top-0 z-10 bg-background py-2">
+        <Button variant="outline" onClick={addPhoto}><Plus className="mr-1 h-4 w-4" /> Add New Photo</Button>
+        <Button onClick={() => save.mutate({ section: "gallery", content: current })} disabled={save.isPending}>
+          {save.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null} Save Gallery
+        </Button>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
         {current.map((p, i) => (
           <Card key={i}>
             <CardContent className="pt-4 space-y-3">
