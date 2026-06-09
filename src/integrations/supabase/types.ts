@@ -1072,6 +1072,7 @@ export type Database = {
           id: string
           mpesa_ref: string | null
           payment_date: string | null
+          selected_items: Json
           student_id: string
           term: string
           total_expected: number
@@ -1085,6 +1086,7 @@ export type Database = {
           id?: string
           mpesa_ref?: string | null
           payment_date?: string | null
+          selected_items?: Json
           student_id: string
           term?: string
           total_expected?: number
@@ -1098,6 +1100,7 @@ export type Database = {
           id?: string
           mpesa_ref?: string | null
           payment_date?: string | null
+          selected_items?: Json
           student_id?: string
           term?: string
           total_expected?: number

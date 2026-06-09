@@ -11,14 +11,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2, History, Zap, Loader2 } from "lucide-react";
+import { DollarSign, TrendingUp, TriangleAlert as AlertTriangle, Users, Plus, ArrowDownToLine, Trash2, Edit2, History, Zap, Loader2, SlidersHorizontal } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import RecordPaymentDialog from "@/components/finance/RecordPaymentDialog";
 import PaymentHistoryDialog from "@/components/finance/PaymentHistoryDialog";
+import CustomizeFeeDialog from "@/components/finance/CustomizeFeeDialog";
 import StudentFeeView from "@/components/finance/StudentFeeView";
 
 interface FeeCategory {
   name: string;
   amount: number;
+  optional?: boolean;
 }
 
 const TERMS = ["Term 1", "Term 2", "Term 3"];
@@ -31,6 +34,7 @@ const FinancePage = () => {
   const [selectedYear, setSelectedYear] = useState<string>(CURRENT_YEAR);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   const [structureDialogOpen, setStructureDialogOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<any>(null);
   const [selectedFeeRecord, setSelectedFeeRecord] = useState<any>(null);
@@ -181,8 +185,15 @@ const FinancePage = () => {
       }
 
       const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
-      const totalExpected = getStructureTotal(structure);
       const termsToApply = structure.term ? [structure.term] : TERMS;
+
+      // Build default selected_items (optional categories default to NOT included)
+      const cats: FeeCategory[] = Array.isArray(structure.fee_categories) ? structure.fee_categories : [];
+      const baseItems: any[] = [];
+      if (structure.amount_per_term > 0) baseItems.push({ name: "Tuition", amount: Number(structure.amount_per_term), included: true, optional: false });
+      if (structure.lunch_fee > 0) baseItems.push({ name: "Lunch", amount: Number(structure.lunch_fee), included: true, optional: true });
+      cats.forEach((c) => baseItems.push({ name: c.name, amount: Number(c.amount) || 0, included: !c.optional, optional: !!c.optional }));
+      const defaultTotal = baseItems.filter((i) => i.included).reduce((s, i) => s + i.amount, 0);
 
       const { data: existing } = await supabase
         .from("student_fees")
@@ -197,7 +208,7 @@ const FinancePage = () => {
       for (const studentId of studentIds) {
         for (const term of termsToApply) {
           if (!existingSet.has(`${studentId}::${term}`)) {
-            toInsert.push({ student_id: studentId, academic_year: structure.academic_year, term, total_expected: totalExpected, total_paid: 0, balance: totalExpected });
+            toInsert.push({ student_id: studentId, academic_year: structure.academic_year, term, total_expected: defaultTotal, total_paid: 0, balance: defaultTotal, selected_items: baseItems });
           }
         }
       }
@@ -211,7 +222,7 @@ const FinancePage = () => {
       if (insertErr) throw insertErr;
 
       const skipped = studentIds.length * termsToApply.length - toInsert.length;
-      toast.success(`Created ${toInsert.length} fee record${toInsert.length !== 1 ? "s" : ""} for ${studentIds.length} student${studentIds.length !== 1 ? "s" : ""}${skipped > 0 ? ` (${skipped} already existed, skipped)` : ""}`);
+      toast.success(`Created ${toInsert.length} fee record${toInsert.length !== 1 ? "s" : ""} for ${studentIds.length} student${studentIds.length !== 1 ? "s" : ""}${skipped > 0 ? ` (${skipped} already existed, skipped)` : ""}. Optional items (e.g. Transport) are excluded by default — use Customize to add them per student.`);
       queryClient.invalidateQueries({ queryKey: ["all-student-fees"] });
       queryClient.invalidateQueries({ queryKey: ["fee-stats"] });
     } catch (err: any) {
@@ -318,7 +329,7 @@ const FinancePage = () => {
                 <Label className="text-sm font-semibold">Additional Fee Categories</Label>
                 {structureForm.fee_categories.map((cat, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="text-sm min-w-[100px] truncate">{cat.name}</span>
+                    <span className="text-sm min-w-[90px] truncate">{cat.name}</span>
                     <Input
                       type="number"
                       placeholder="Amount"
@@ -326,6 +337,19 @@ const FinancePage = () => {
                       value={cat.amount || ""}
                       onChange={(e) => updateCategoryAmount(i, e.target.value)}
                     />
+                    <label className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer">
+                      <Checkbox
+                        checked={!!cat.optional}
+                        onCheckedChange={(v) =>
+                          setStructureForm((p) => {
+                            const cats = [...p.fee_categories];
+                            cats[i] = { ...cats[i], optional: !!v };
+                            return { ...p, fee_categories: cats };
+                          })
+                        }
+                      />
+                      Optional
+                    </label>
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeCategory(i)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -436,9 +460,12 @@ const FinancePage = () => {
                       <Badge variant={fee.balance > 0 ? "destructive" : "default"}>KES {fee.balance?.toLocaleString()}</Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-wrap">
                         <Button size="sm" variant="outline" onClick={() => { setSelectedFeeRecord(fee); setPaymentDialogOpen(true); }}>
                           <ArrowDownToLine className="h-3 w-3 mr-1" /> Pay
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => { setSelectedFeeRecord(fee); setCustomizeDialogOpen(true); }} title="Toggle optional items like Transport for this student">
+                          <SlidersHorizontal className="h-3 w-3 mr-1" /> Customize
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => { setSelectedFeeRecord(fee); setHistoryDialogOpen(true); }}>
                           <History className="h-3 w-3 mr-1" /> History
@@ -546,6 +573,13 @@ const FinancePage = () => {
       <PaymentHistoryDialog
         open={historyDialogOpen}
         onOpenChange={setHistoryDialogOpen}
+        studentFee={selectedFeeRecord}
+      />
+
+      {/* Customize Fee Items Dialog */}
+      <CustomizeFeeDialog
+        open={customizeDialogOpen}
+        onOpenChange={setCustomizeDialogOpen}
         studentFee={selectedFeeRecord}
       />
     </div>

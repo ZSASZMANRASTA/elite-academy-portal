@@ -1,0 +1,1 @@
+ALTER TABLE public.student_fees ADD COLUMN IF NOT EXISTS selected_items jsonb NOT NULL DEFAULT '[]'::jsonb;
