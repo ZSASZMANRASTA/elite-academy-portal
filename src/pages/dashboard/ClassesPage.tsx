@@ -13,8 +13,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Users, UserPlus, ArrowLeft, ArrowRightLeft, Trash2 } from "lucide-react";
+import { Plus, Users, UserPlus, ArrowLeft, ArrowRightLeft, Trash2, FileSpreadsheet } from "lucide-react";
 import StudentDetailDialog from "@/components/StudentDetailDialog";
+import BulkImportStudentsDialog from "@/components/classes/BulkImportStudentsDialog";
 
 const ClassesPage = () => {
   const { user, role } = useAuth();
