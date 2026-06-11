@@ -564,6 +564,21 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
           </div>
         )}
       </DialogContent>
+
+      {customizeFee && (
+        <CustomizeFeeDialog
+          open={!!customizeFee}
+          onOpenChange={(o) => { if (!o) setCustomizeFee(null); }}
+          studentFee={customizeFee}
+        />
+      )}
+      {recordPaymentFee && (
+        <RecordPaymentDialog
+          open={!!recordPaymentFee}
+          onOpenChange={(o) => { if (!o) setRecordPaymentFee(null); }}
+          studentFee={recordPaymentFee}
+        />
+      )}
     </Dialog>
   );
 };
