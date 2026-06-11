@@ -1,7 +1,10 @@
 import { BookOpen, FlaskConical, Monitor, Dumbbell, Sprout, Palette } from "lucide-react";
 
-const curriculumPhases = [
+type PhaseId = "early" | "upper" | "junior";
+
+const curriculumPhases: { id: PhaseId; phase: string; areas: string[] }[] = [
   {
+    id: "early",
     phase: "Early Years (PP1–Grade 3)",
     areas: [
       "Literacy & Indigenous Languages",
@@ -14,6 +17,7 @@ const curriculumPhases = [
     ],
   },
   {
+    id: "upper",
     phase: "Upper Primary (Grades 4–6)",
     areas: [
       "English",
@@ -28,6 +32,7 @@ const curriculumPhases = [
     ],
   },
   {
+    id: "junior",
     phase: "Junior Secondary (Grades 7–9)",
     areas: [
       "English",
@@ -44,6 +49,29 @@ const curriculumPhases = [
     ],
   },
 ];
+
+type Subject = {
+  name: string;
+  appliesTo: "all" | PhaseId[];
+};
+
+// Define subjects once. Use appliesTo: "all" for subjects that are taught in every phase.
+const defaultSubjects: Subject[] = [
+  { name: "Mathematics", appliesTo: "all" },
+  { name: "English", appliesTo: ["early", "upper", "junior"] },
+  { name: "Kiswahili", appliesTo: ["early", "upper", "junior"] },
+  { name: "Creative Arts", appliesTo: ["early", "upper"] },
+  { name: "Integrated Science", appliesTo: ["junior"] },
+  { name: "Agriculture", appliesTo: ["upper", "junior"] },
+  { name: "Business Studies", appliesTo: ["junior"] },
+  { name: "Religious Education", appliesTo: ["early", "upper", "junior"] },
+];
+
+function subjectsForPhase(phaseId: PhaseId, subjects: Subject[]) {
+  return subjects.filter(
+    (s) => s.appliesTo === "all" || (Array.isArray(s.appliesTo) && s.appliesTo.includes(phaseId))
+  );
+}
 
 const facilities = [
   {
@@ -74,6 +102,9 @@ const facilities = [
 ];
 
 const Academics = () => {
+  // In the future these could come from site content / CMS — for now use the defaults defined above.
+  const subjects = defaultSubjects;
+
   return (
     <div className="container py-16">
       <h1 className="font-display text-4xl font-bold">Academics</h1>
@@ -89,15 +120,24 @@ const Academics = () => {
         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
           <li className="flex items-start gap-2">
             <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-            <span><strong>KPSEA</strong> — Sat at the end of Grade 6 for assessment and transition to JSS.</span>
+            <span>
+              <strong>KPSEA</strong> — Sat at the end of Grade 6 for assessment and transition to
+              JSS.
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-            <span><strong>School-Based Assessments (SBAs)</strong> — Continuous projects and practicals in Grades 7–8 contribute 40% of the final placement score.</span>
+            <span>
+              <strong>School-Based Assessments (SBAs)</strong> — Continuous projects and practicals
+              in Grades 7–8 contribute 40% of the final placement score.
+            </span>
           </li>
           <li className="flex items-start gap-2">
             <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-            <span><strong>KJSEA</strong> — Sat at the end of Grade 9, contributing 60% toward Senior School placement.</span>
+            <span>
+              <strong>KJSEA</strong> — Sat at the end of Grade 9, contributing 60% toward Senior
+              School placement.
+            </span>
           </li>
         </ul>
       </div>
@@ -110,7 +150,9 @@ const Academics = () => {
             className="rounded-lg border border-border bg-card p-6 shadow-sm"
           >
             <h3 className="font-display font-semibold text-primary">{group.phase}</h3>
-            <ul className="mt-3 space-y-2">
+
+            <h4 className="mt-3 font-semibold">Key Learning Areas</h4>
+            <ul className="mt-2 space-y-2">
               {group.areas.map((item) => (
                 <li
                   key={item}
@@ -118,6 +160,21 @@ const Academics = () => {
                 >
                   <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {item}
+                </li>
+              ))}
+            </ul>
+
+            <h4 className="mt-4 font-semibold">Subjects</h4>
+            <ul className="mt-2 space-y-2">
+              {subjectsForPhase(group.id, subjects).map((s) => (
+                <li key={s.name} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  {s.name}
+                  {s.appliesTo === "all" && (
+                    <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      All classes
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
