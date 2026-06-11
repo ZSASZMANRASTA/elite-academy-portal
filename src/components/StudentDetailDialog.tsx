@@ -241,27 +241,73 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
           <div className="space-y-5">
 
             {/* Profile */}
-            <Section icon={User} title="Profile">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Full Name</p>
-                  <p className="font-medium">{profile?.full_name || "—"}</p>
+            <Section
+              icon={User}
+              title="Profile"
+              action={isStaff && !editingProfile && (
+                <Button size="sm" variant="outline" className="gap-1 h-7 text-xs" onClick={() => {
+                  setProfileForm({ full_name: profile?.full_name || "", student_id: (profile as any)?.student_id || "" });
+                  setEditingProfile(true);
+                }}>
+                  <Edit2 className="h-3 w-3" /> Edit
+                </Button>
+              )}
+            >
+              {editingProfile ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Full Name</Label>
+                      <Input className="h-8 text-sm" value={profileForm.full_name} onChange={(e) => setProfileForm((p) => ({ ...p, full_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Student ID</Label>
+                      <Input className="h-8 text-sm" value={profileForm.student_id} onChange={(e) => setProfileForm((p) => ({ ...p, student_id: e.target.value }))} placeholder="e.g. ADM001" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" className="gap-1 h-7 text-xs" onClick={() => updateProfileMutation.mutate()} disabled={updateProfileMutation.isPending}>
+                      <Check className="h-3 w-3" /> {updateProfileMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="gap-1 h-7 text-xs" onClick={() => setEditingProfile(false)}>
+                      <X className="h-3 w-3" /> Cancel
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Class</p>
-                  <p className="font-medium">{profile?.class || "—"}</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Full Name</p>
+                    <p className="font-medium">{profile?.full_name || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Student ID</p>
+                    <p className="font-medium font-mono text-xs">{(profile as any)?.student_id || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Class</p>
+                    <p className="font-medium">{profile?.class || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <Badge variant={profile?.approved ? "default" : "secondary"}>
+                        {profile?.approved ? "Approved" : "Pending"}
+                      </Badge>
+                      {isStaff && (
+                        <Button size="sm" variant="ghost" className="h-6 text-xs gap-1 px-1.5" onClick={() => toggleApprovalMutation.mutate(!profile?.approved)} disabled={toggleApprovalMutation.isPending}>
+                          <ShieldCheck className="h-3 w-3" />
+                          {profile?.approved ? "Revoke" : "Approve"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground">Account Created</p>
+                    <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "—"}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge variant={profile?.approved ? "default" : "secondary"} className="mt-0.5">
-                    {profile?.approved ? "Approved" : "Pending Approval"}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Account Created</p>
-                  <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "—"}</p>
-                </div>
-              </div>
+              )}
             </Section>
 
             <Separator />
