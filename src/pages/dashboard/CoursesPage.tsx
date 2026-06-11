@@ -275,15 +275,13 @@ const CoursesPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold">Subjects</h1>
         {(role === "teacher" || role === "admin") && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" /> New Subject
-              </Button>
-            </DialogTrigger>
+          <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
+            <Button size="sm" className="gap-2" onClick={openCreateDialog}>
+              <Plus className="h-4 w-4" /> New Subject
+            </Button>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Subject</DialogTitle>
+                <DialogTitle>{editingId ? "Edit Subject" : "Create New Subject"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-2">
                 <div>
@@ -313,8 +311,8 @@ const CoursesPage = () => {
                   <Label htmlFor="published">Publish immediately</Label>
                   <Switch id="published" checked={form.published} onCheckedChange={(v) => setForm({ ...form, published: v })} />
                 </div>
-                <Button className="w-full" onClick={handleCreate} disabled={saving || !form.title.trim()}>
-                  {saving ? "Creating…" : "Create Subject"}
+                <Button className="w-full" onClick={handleSave} disabled={saving || !form.title.trim()}>
+                  {saving ? "Saving…" : editingId ? "Save Changes" : "Create Subject"}
                 </Button>
               </div>
             </DialogContent>
