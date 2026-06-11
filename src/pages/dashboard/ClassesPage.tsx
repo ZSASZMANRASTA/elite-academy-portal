@@ -13,8 +13,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Users, UserPlus, ArrowLeft, ArrowRightLeft, Trash2 } from "lucide-react";
+import { Plus, Users, UserPlus, ArrowLeft, ArrowRightLeft, Trash2, FileSpreadsheet } from "lucide-react";
 import StudentDetailDialog from "@/components/StudentDetailDialog";
+import BulkImportStudentsDialog from "@/components/classes/BulkImportStudentsDialog";
 
 const ClassesPage = () => {
   const { user, role } = useAuth();
@@ -31,6 +32,7 @@ const ClassesPage = () => {
   const [studentDetailOpen, setStudentDetailOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<any>(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
 
   const isTeacherOrAdmin = role === "teacher" || role === "admin";
 
@@ -211,37 +213,54 @@ const ClassesPage = () => {
         </div>
 
         {isTeacherOrAdmin && (
-          <Dialog open={studentDialogOpen} onOpenChange={setStudentDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setStudentForm((p) => ({ ...p, class_id: selectedClass }))}>
-                <UserPlus className="h-4 w-4 mr-2" /> Create & Assign Student
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create Student Account</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Full Name</Label>
-                  <Input value={studentForm.full_name} onChange={(e) => setStudentForm((p) => ({ ...p, full_name: e.target.value }))} />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input type="email" value={studentForm.email} onChange={(e) => setStudentForm((p) => ({ ...p, email: e.target.value }))} />
-                </div>
-                <div>
-                  <Label>Password</Label>
-                  <Input type="password" value={studentForm.password} onChange={(e) => setStudentForm((p) => ({ ...p, password: e.target.value }))} />
-                </div>
-                <Button
-                  className="w-full"
-                  disabled={createStudentMutation.isPending}
-                  onClick={() => createStudentMutation.mutate(studentForm)}
-                >
-                  {createStudentMutation.isPending ? "Creating..." : "Create Student"}
+          <div className="flex flex-wrap gap-2">
+            <Dialog open={studentDialogOpen} onOpenChange={setStudentDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setStudentForm((p) => ({ ...p, class_id: selectedClass }))}>
+                  <UserPlus className="h-4 w-4 mr-2" /> Create & Assign Student
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Create Student Account</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Full Name</Label>
+                    <Input value={studentForm.full_name} onChange={(e) => setStudentForm((p) => ({ ...p, full_name: e.target.value }))} />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input type="email" value={studentForm.email} onChange={(e) => setStudentForm((p) => ({ ...p, email: e.target.value }))} />
+                  </div>
+                  <div>
+                    <Label>Password</Label>
+                    <Input type="password" value={studentForm.password} onChange={(e) => setStudentForm((p) => ({ ...p, password: e.target.value }))} />
+                  </div>
+                  <Button
+                    className="w-full"
+                    disabled={createStudentMutation.isPending}
+                    onClick={() => createStudentMutation.mutate(studentForm)}
+                  >
+                    {createStudentMutation.isPending ? "Creating..." : "Create Student"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {role === "admin" && (
+              <Button variant="outline" onClick={() => setBulkImportOpen(true)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Bulk Import (CSV/Excel)
+              </Button>
+            )}
+          </div>
+        )}
+
+        {selectedClassObj && (
+          <BulkImportStudentsDialog
+            open={bulkImportOpen}
+            onOpenChange={setBulkImportOpen}
+            classId={selectedClass!}
+            className={selectedClassObj.stream ? `${selectedClassObj.name} ${selectedClassObj.stream}` : selectedClassObj.name}
+          />
         )}
 
         <Card>

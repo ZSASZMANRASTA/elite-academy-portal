@@ -12,8 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   User, CalendarCheck, ClipboardList, DollarSign, Phone, Mail, GraduationCap,
-  BookOpen, Plus, Edit2, Trash2, Check, X,
+  BookOpen, Plus, Edit2, Trash2, Check, X, SlidersHorizontal, CreditCard, ShieldCheck,
 } from "lucide-react";
+import CustomizeFeeDialog from "@/components/finance/CustomizeFeeDialog";
+import RecordPaymentDialog from "@/components/finance/RecordPaymentDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   open: boolean;
@@ -40,12 +43,18 @@ const Section = ({ icon: Icon, title, action, children }: {
 
 const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Props) => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
+  const isStaff = role === "teacher" || role === "admin";
   const enabled = open && !!studentId;
 
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(BLANK_CONTACT);
   const [addingContact, setAddingContact] = useState(false);
   const [addForm, setAddForm] = useState(BLANK_CONTACT);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ full_name: "", student_id: "" });
+  const [customizeFee, setCustomizeFee] = useState<any>(null);
+  const [recordPaymentFee, setRecordPaymentFee] = useState<any>(null);
 
   const { data: profile, isLoading: loadingProfile } = useQuery({
     queryKey: ["student-profile", studentId],
@@ -80,7 +89,11 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
   const { data: fees = [] } = useQuery({
     queryKey: ["student-fees-detail", studentId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("student_fees").select("term, academic_year, total_expected, total_paid, balance").eq("student_id", studentId!).order("academic_year").order("term");
+      const { data, error } = await supabase
+        .from("student_fees")
+        .select("*")
+        .eq("student_id", studentId!)
+        .order("academic_year").order("term");
       if (error) throw error;
       return data;
     },
@@ -109,6 +122,40 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
       return courses ?? [];
     },
     enabled,
+  });
+
+  // ── Profile mutations ──────────────────────────────────────────────────────
+  const updateProfileMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: profileForm.full_name.trim(),
+          student_id: profileForm.student_id.trim() || null,
+        })
+        .eq("id", studentId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["student-profile", studentId] });
+      queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      setEditingProfile(false);
+      toast.success("Profile updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const toggleApprovalMutation = useMutation({
+    mutationFn: async (newVal: boolean) => {
+      const { error } = await supabase.from("profiles").update({ approved: newVal }).eq("id", studentId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["student-profile", studentId] });
+      queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      toast.success("Approval status updated");
+    },
+    onError: (e: any) => toast.error(e.message),
   });
 
   // ── Parent contact mutations ───────────────────────────────────────────────
@@ -194,27 +241,73 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
           <div className="space-y-5">
 
             {/* Profile */}
-            <Section icon={User} title="Profile">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Full Name</p>
-                  <p className="font-medium">{profile?.full_name || "—"}</p>
+            <Section
+              icon={User}
+              title="Profile"
+              action={isStaff && !editingProfile && (
+                <Button size="sm" variant="outline" className="gap-1 h-7 text-xs" onClick={() => {
+                  setProfileForm({ full_name: profile?.full_name || "", student_id: (profile as any)?.student_id || "" });
+                  setEditingProfile(true);
+                }}>
+                  <Edit2 className="h-3 w-3" /> Edit
+                </Button>
+              )}
+            >
+              {editingProfile ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Full Name</Label>
+                      <Input className="h-8 text-sm" value={profileForm.full_name} onChange={(e) => setProfileForm((p) => ({ ...p, full_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Student ID</Label>
+                      <Input className="h-8 text-sm" value={profileForm.student_id} onChange={(e) => setProfileForm((p) => ({ ...p, student_id: e.target.value }))} placeholder="e.g. ADM001" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" className="gap-1 h-7 text-xs" onClick={() => updateProfileMutation.mutate()} disabled={updateProfileMutation.isPending}>
+                      <Check className="h-3 w-3" /> {updateProfileMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="gap-1 h-7 text-xs" onClick={() => setEditingProfile(false)}>
+                      <X className="h-3 w-3" /> Cancel
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Class</p>
-                  <p className="font-medium">{profile?.class || "—"}</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Full Name</p>
+                    <p className="font-medium">{profile?.full_name || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Student ID</p>
+                    <p className="font-medium font-mono text-xs">{(profile as any)?.student_id || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Class</p>
+                    <p className="font-medium">{profile?.class || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <Badge variant={profile?.approved ? "default" : "secondary"}>
+                        {profile?.approved ? "Approved" : "Pending"}
+                      </Badge>
+                      {isStaff && (
+                        <Button size="sm" variant="ghost" className="h-6 text-xs gap-1 px-1.5" onClick={() => toggleApprovalMutation.mutate(!profile?.approved)} disabled={toggleApprovalMutation.isPending}>
+                          <ShieldCheck className="h-3 w-3" />
+                          {profile?.approved ? "Revoke" : "Approve"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground">Account Created</p>
+                    <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "—"}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge variant={profile?.approved ? "default" : "secondary"} className="mt-0.5">
-                    {profile?.approved ? "Approved" : "Pending Approval"}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Account Created</p>
-                  <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "—"}</p>
-                </div>
-              </div>
+              )}
             </Section>
 
             <Separator />
@@ -325,15 +418,32 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    {fees.map((f: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between text-sm rounded border px-3 py-2">
-                        <span className="font-medium">{f.term}</span>
-                        <span className="text-xs text-muted-foreground">{f.academic_year}</span>
-                        <Badge variant={f.balance > 0 ? "destructive" : "default"} className="text-xs">
-                          {f.balance > 0 ? `KES ${f.balance.toLocaleString()} due` : "Paid"}
-                        </Badge>
-                      </div>
-                    ))}
+                    {fees.map((f: any, i: number) => {
+                      const feeWithProfile = { ...f, profiles: { full_name: profile?.full_name, class: profile?.class } };
+                      return (
+                        <div key={i} className="flex flex-wrap items-center justify-between gap-2 text-sm rounded border px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{f.term}</span>
+                            <span className="text-xs text-muted-foreground">{f.academic_year}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={f.balance > 0 ? "destructive" : "default"} className="text-xs">
+                              {f.balance > 0 ? `KES ${Number(f.balance).toLocaleString()} due` : "Paid"}
+                            </Badge>
+                            {isStaff && (
+                              <>
+                                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setCustomizeFee(feeWithProfile)}>
+                                  <SlidersHorizontal className="h-3 w-3" /> Customize
+                                </Button>
+                                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setRecordPaymentFee(feeWithProfile)}>
+                                  <CreditCard className="h-3 w-3" /> Pay
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -454,6 +564,21 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
           </div>
         )}
       </DialogContent>
+
+      {customizeFee && (
+        <CustomizeFeeDialog
+          open={!!customizeFee}
+          onOpenChange={(o) => { if (!o) setCustomizeFee(null); }}
+          studentFee={customizeFee}
+        />
+      )}
+      {recordPaymentFee && (
+        <RecordPaymentDialog
+          open={!!recordPaymentFee}
+          onOpenChange={(o) => { if (!o) setRecordPaymentFee(null); }}
+          studentFee={recordPaymentFee}
+        />
+      )}
     </Dialog>
   );
 };
