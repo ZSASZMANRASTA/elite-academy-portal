@@ -124,6 +124,40 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
     enabled,
   });
 
+  // ── Profile mutations ──────────────────────────────────────────────────────
+  const updateProfileMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: profileForm.full_name.trim(),
+          student_id: profileForm.student_id.trim() || null,
+        })
+        .eq("id", studentId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["student-profile", studentId] });
+      queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      setEditingProfile(false);
+      toast.success("Profile updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const toggleApprovalMutation = useMutation({
+    mutationFn: async (newVal: boolean) => {
+      const { error } = await supabase.from("profiles").update({ approved: newVal }).eq("id", studentId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["student-profile", studentId] });
+      queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      toast.success("Approval status updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   // ── Parent contact mutations ───────────────────────────────────────────────
   const addContactMutation = useMutation({
     mutationFn: async () => {
