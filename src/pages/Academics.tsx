@@ -10,6 +10,7 @@ const curriculumPhases = [
       "Environmental Activities",
       "Creative Arts",
       "Religious Education (CRE/IRE)",
+      "Computer Studies(Grade 1-3 Intro)",
     ],
   },
   {
@@ -23,6 +24,7 @@ const curriculumPhases = [
       "Agriculture & Nutrition",
       "Creative Arts & Sports",
       "Religious Education",
+      "Computer Studies",
     ],
   },
   {
@@ -38,6 +40,7 @@ const curriculumPhases = [
       "Creative Arts & Sports",
       "Religious Education",
       "Business Studies",
+      "Computer Studies",
     ],
   },
 ];
@@ -60,7 +63,7 @@ const facilities = [
   },
   {
     name: "Sports Complex",
-    desc: "Football pitch, basketball court, and athletics track with staggered schedules",
+    desc: "Football pitch, basketball court, netball pitch, volleyball pitch and athletics track with staggered schedules",
     icon: <Dumbbell className="h-6 w-6" />,
   },
   {
