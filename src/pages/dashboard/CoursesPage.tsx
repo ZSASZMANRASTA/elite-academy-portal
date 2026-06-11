@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Plus, ArrowLeft, FileText, Video, ClipboardList, PenTool, Download, Calendar } from "lucide-react";
+import { BookOpen, Plus, ArrowLeft, FileText, Video, ClipboardList, PenTool, Download, Calendar, Pencil, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Tables } from "@/integrations/supabase/types";
@@ -22,6 +23,8 @@ const CoursesPage = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", description: "", subject: "", published: false, class_id: "" });
 
   // Student detail view state
@@ -51,24 +54,58 @@ const CoursesPage = () => {
 
   useEffect(() => { loadCourses(); }, []);
 
-  const handleCreate = async () => {
+  const resetForm = () => {
+    setForm({ title: "", description: "", subject: "", published: false, class_id: "" });
+    setEditingId(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (course: Tables<"courses">) => {
+    setEditingId(course.id);
+    setForm({
+      title: course.title ?? "",
+      description: course.description ?? "",
+      subject: course.subject ?? "",
+      published: !!course.published,
+      class_id: course.class_id ?? "",
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     if (!form.title.trim() || !user) return;
     setSaving(true);
-    const { error } = await supabase.from("courses").insert({
+    const payload = {
       title: form.title,
       description: form.description || null,
       subject: form.subject || null,
       published: form.published,
-      teacher_id: user.id,
       class_id: form.class_id || null,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("courses").update(payload).eq("id", editingId)
+      : await supabase.from("courses").insert({ ...payload, teacher_id: user.id });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Subject created!");
-    setForm({ title: "", description: "", subject: "", published: false, class_id: "" });
+    toast.success(editingId ? "Subject updated!" : "Subject created!");
+    resetForm();
     setDialogOpen(false);
     loadCourses();
   };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("courses").delete().eq("id", deleteId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Subject deleted");
+    setDeleteId(null);
+    loadCourses();
+  };
+
 
   const openCourseDetail = async (course: Tables<"courses">) => {
     setSelectedCourse(course);
@@ -238,15 +275,13 @@ const CoursesPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold">Subjects</h1>
         {(role === "teacher" || role === "admin") && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" /> New Subject
-              </Button>
-            </DialogTrigger>
+          <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
+            <Button size="sm" className="gap-2" onClick={openCreateDialog}>
+              <Plus className="h-4 w-4" /> New Subject
+            </Button>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Subject</DialogTitle>
+                <DialogTitle>{editingId ? "Edit Subject" : "Create New Subject"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-2">
                 <div>
@@ -276,8 +311,8 @@ const CoursesPage = () => {
                   <Label htmlFor="published">Publish immediately</Label>
                   <Switch id="published" checked={form.published} onCheckedChange={(v) => setForm({ ...form, published: v })} />
                 </div>
-                <Button className="w-full" onClick={handleCreate} disabled={saving || !form.title.trim()}>
-                  {saving ? "Creating…" : "Create Subject"}
+                <Button className="w-full" onClick={handleSave} disabled={saving || !form.title.trim()}>
+                  {saving ? "Saving…" : editingId ? "Save Changes" : "Create Subject"}
                 </Button>
               </div>
             </DialogContent>
@@ -314,12 +349,39 @@ const CoursesPage = () => {
                   <span className={`text-xs font-medium ${course.published ? "text-green-600" : "text-muted-foreground"}`}>
                     {course.published ? "Published" : "Draft"}
                   </span>
+                  {(role === "teacher" || role === "admin") && (
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEditDialog(course)} aria-label="Edit subject">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(course.id)} aria-label="Delete subject">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this subject?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the subject and may affect related materials, assignments and quizzes. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
