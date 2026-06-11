@@ -10,6 +10,7 @@ const curriculumPhases = [
       "Environmental Activities",
       "Creative Arts",
       "Religious Education (CRE/IRE)",
+      "Computer Studies(Grade 1-3 Intro)",
     ],
   },
   {
@@ -23,6 +24,7 @@ const curriculumPhases = [
       "Agriculture & Nutrition",
       "Creative Arts & Sports",
       "Religious Education",
+      "Computer Studies",
     ],
   },
   {
@@ -38,6 +40,7 @@ const curriculumPhases = [
       "Creative Arts & Sports",
       "Religious Education",
       "Business Studies",
+      "Computer Studies",
     ],
   },
 ];
