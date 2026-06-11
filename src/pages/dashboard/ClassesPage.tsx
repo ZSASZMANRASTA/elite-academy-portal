@@ -32,6 +32,7 @@ const ClassesPage = () => {
   const [studentDetailOpen, setStudentDetailOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<any>(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
 
   const isTeacherOrAdmin = role === "teacher" || role === "admin";
 
