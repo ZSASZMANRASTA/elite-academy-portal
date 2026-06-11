@@ -41,7 +41,7 @@ const Index = () => {
               className="mx-auto mt-4 max-w-xl text-lg text-card/90 animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              Adams Junior Academy — Academic Superiority Upbringing with Passion. A CBC school in Kajiado nurturing learners from PP1 through Grade 9 since 2013.
+              Adams Junior Academy  Academic Superiority Upbringing with Passion. A CBC school in Kajiado nurturing learners from PP1 through Grade 9 since 2013.
             </p>
             <div
               className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in"
@@ -83,7 +83,7 @@ const Index = () => {
           Why Adams Junior Academy?
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-          As a CBC Comprehensive School, we provide a seamless 11-year learning journey — combining
+          As a CBC Comprehensive School, we provide a seamless 11-year learning journey combining
           academic rigour, continuous assessment, and holistic development under one campus.
         </p>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
