@@ -91,7 +91,7 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
     queryFn: async () => {
       const { data, error } = await supabase
         .from("student_fees")
-        .select("*, profiles!student_fees_student_id_fkey(full_name, class)")
+        .select("*")
         .eq("student_id", studentId!)
         .order("academic_year").order("term");
       if (error) throw error;
