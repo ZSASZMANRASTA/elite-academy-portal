@@ -43,12 +43,18 @@ const Section = ({ icon: Icon, title, action, children }: {
 
 const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Props) => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
+  const isStaff = role === "teacher" || role === "admin";
   const enabled = open && !!studentId;
 
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(BLANK_CONTACT);
   const [addingContact, setAddingContact] = useState(false);
   const [addForm, setAddForm] = useState(BLANK_CONTACT);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ full_name: "", student_id: "" });
+  const [customizeFee, setCustomizeFee] = useState<any>(null);
+  const [recordPaymentFee, setRecordPaymentFee] = useState<any>(null);
 
   const { data: profile, isLoading: loadingProfile } = useQuery({
     queryKey: ["student-profile", studentId],
