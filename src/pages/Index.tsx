@@ -41,7 +41,9 @@ const Index = () => {
               className="mx-auto mt-4 max-w-xl text-lg text-card/90 animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              Adams Junior Academy  Academic Superiority Upbringing with Passion. A CBC school in Kajiado nurturing learners from PP1 through Grade 9 since 2013.
+              Adams Junior Academy 
+              Academic Superiority Upbringing with Passion. 
+              A CBC school in Kajiado nurturing learners from PP1 through Grade 9 since 2013.
             </p>
             <div
               className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-fade-in"
