@@ -12,8 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   User, CalendarCheck, ClipboardList, DollarSign, Phone, Mail, GraduationCap,
-  BookOpen, Plus, Edit2, Trash2, Check, X,
+  BookOpen, Plus, Edit2, Trash2, Check, X, SlidersHorizontal, CreditCard, ShieldCheck,
 } from "lucide-react";
+import CustomizeFeeDialog from "@/components/finance/CustomizeFeeDialog";
+import RecordPaymentDialog from "@/components/finance/RecordPaymentDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   open: boolean;
