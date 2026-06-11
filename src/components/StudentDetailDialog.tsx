@@ -418,15 +418,32 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    {fees.map((f: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between text-sm rounded border px-3 py-2">
-                        <span className="font-medium">{f.term}</span>
-                        <span className="text-xs text-muted-foreground">{f.academic_year}</span>
-                        <Badge variant={f.balance > 0 ? "destructive" : "default"} className="text-xs">
-                          {f.balance > 0 ? `KES ${f.balance.toLocaleString()} due` : "Paid"}
-                        </Badge>
-                      </div>
-                    ))}
+                    {fees.map((f: any, i: number) => {
+                      const feeWithProfile = { ...f, profiles: { full_name: profile?.full_name, class: profile?.class } };
+                      return (
+                        <div key={i} className="flex flex-wrap items-center justify-between gap-2 text-sm rounded border px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{f.term}</span>
+                            <span className="text-xs text-muted-foreground">{f.academic_year}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={f.balance > 0 ? "destructive" : "default"} className="text-xs">
+                              {f.balance > 0 ? `KES ${Number(f.balance).toLocaleString()} due` : "Paid"}
+                            </Badge>
+                            {isStaff && (
+                              <>
+                                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setCustomizeFee(feeWithProfile)}>
+                                  <SlidersHorizontal className="h-3 w-3" /> Customize
+                                </Button>
+                                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setRecordPaymentFee(feeWithProfile)}>
+                                  <CreditCard className="h-3 w-3" /> Pay
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
