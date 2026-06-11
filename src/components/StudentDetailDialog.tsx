@@ -89,7 +89,11 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
   const { data: fees = [] } = useQuery({
     queryKey: ["student-fees-detail", studentId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("student_fees").select("term, academic_year, total_expected, total_paid, balance").eq("student_id", studentId!).order("academic_year").order("term");
+      const { data, error } = await supabase
+        .from("student_fees")
+        .select("*, profiles!student_fees_student_id_fkey(full_name, class)")
+        .eq("student_id", studentId!)
+        .order("academic_year").order("term");
       if (error) throw error;
       return data;
     },
