@@ -54,24 +54,58 @@ const CoursesPage = () => {
 
   useEffect(() => { loadCourses(); }, []);
 
-  const handleCreate = async () => {
+  const resetForm = () => {
+    setForm({ title: "", description: "", subject: "", published: false, class_id: "" });
+    setEditingId(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (course: Tables<"courses">) => {
+    setEditingId(course.id);
+    setForm({
+      title: course.title ?? "",
+      description: course.description ?? "",
+      subject: course.subject ?? "",
+      published: !!course.published,
+      class_id: course.class_id ?? "",
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     if (!form.title.trim() || !user) return;
     setSaving(true);
-    const { error } = await supabase.from("courses").insert({
+    const payload = {
       title: form.title,
       description: form.description || null,
       subject: form.subject || null,
       published: form.published,
-      teacher_id: user.id,
       class_id: form.class_id || null,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("courses").update(payload).eq("id", editingId)
+      : await supabase.from("courses").insert({ ...payload, teacher_id: user.id });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Subject created!");
-    setForm({ title: "", description: "", subject: "", published: false, class_id: "" });
+    toast.success(editingId ? "Subject updated!" : "Subject created!");
+    resetForm();
     setDialogOpen(false);
     loadCourses();
   };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("courses").delete().eq("id", deleteId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Subject deleted");
+    setDeleteId(null);
+    loadCourses();
+  };
+
 
   const openCourseDetail = async (course: Tables<"courses">) => {
     setSelectedCourse(course);
