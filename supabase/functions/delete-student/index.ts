@@ -55,26 +55,36 @@ Deno.serve(async (req: Request) => {
     }
 
     // Best-effort cleanup of related rows (in case FKs aren't cascading).
-    const tables = [
+    // Tables that key rows by the student's auth uid via `student_id`:
+    const byStudentId = [
       "class_enrollments",
       "enrollments",
       "attendance",
       "assignment_submissions",
       "quiz_attempts",
-      "quiz_feedback",
       "lesson_progress",
-      "notifications",
       "parent_contacts",
-      "fee_payments",
       "student_fees",
-      "shop_orders",
     ] as const;
-
-    for (const t of tables) {
+    for (const t of byStudentId) {
       await admin.from(t).delete().eq("student_id", student_id);
     }
-    // notifications may use user_id instead
-    await admin.from("notifications").delete().eq("user_id", student_id);
+
+    // fee_payments has no student_id — payments belong to student_fees which
+    // we just deleted above, so their fee_payments cascade (FK) or are already
+    // orphaned. Explicitly clear any left behind that were recorded by/for this user:
+    await admin.from("fee_payments").delete().eq("recorded_by", student_id);
+
+    // Notifications reference the user via target_user_id / sender_id, not student_id.
+    await admin.from("notifications").delete().eq("target_user_id", student_id);
+    await admin.from("notifications").delete().eq("sender_id", student_id);
+
+    // Shop orders use user_id.
+    await admin.from("shop_orders").delete().eq("user_id", student_id);
+
+    // Quiz feedback has no direct student column (it's keyed by attempt_id which
+    // was cascaded when we deleted quiz_attempts above), nothing to do here.
+
     await admin.from("user_roles").delete().eq("user_id", student_id);
     await admin.from("profiles").delete().eq("id", student_id);
 
