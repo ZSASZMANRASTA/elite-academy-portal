@@ -354,6 +354,32 @@ const ClassesPage = () => {
           studentName={viewingStudent?.profiles?.full_name}
         />
 
+        {/* Delete Student Confirm */}
+        <AlertDialog open={!!studentToDelete} onOpenChange={(open) => { if (!open) setStudentToDelete(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete student record?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This permanently removes <strong>{studentToDelete?.profiles?.full_name || "this student"}</strong> and all associated data —
+                account, profile, enrollments, attendance, submissions, quiz attempts, fees and payments. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteStudentMutation.isPending}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteStudentMutation.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (studentToDelete?.student_id) deleteStudentMutation.mutate(studentToDelete.student_id);
+                }}
+              >
+                {deleteStudentMutation.isPending ? "Deleting..." : "Delete permanently"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Transfer Dialog */}
         <Dialog open={transferDialogOpen} onOpenChange={(open) => { setTransferDialogOpen(open); if (!open) { setTransferStudent(null); setTransferTarget(""); } }}>
           <DialogContent>
