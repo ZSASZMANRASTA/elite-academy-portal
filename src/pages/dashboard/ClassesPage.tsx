@@ -33,6 +33,7 @@ const ClassesPage = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<any>(null);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<any>(null);
 
   const isTeacherOrAdmin = role === "teacher" || role === "admin";
 
@@ -185,6 +186,24 @@ const ClassesPage = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const deleteStudentMutation = useMutation({
+    mutationFn: async (studentId: string) => {
+      const { data, error } = await supabase.functions.invoke("delete-student", {
+        body: { student_id: studentId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["class-students", selectedClass] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      setStudentToDelete(null);
+      toast.success("Student record deleted");
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to delete student"),
+  });
+
   // Group classes by name for display
   const classGroups: Record<string, any[]> = {};
   classes.forEach((c: any) => {
@@ -297,14 +316,26 @@ const ClassesPage = () => {
                       </TableCell>
                       {isTeacherOrAdmin && (
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-1"
-                            onClick={() => { setTransferStudent(s); setTransferTarget(""); setTransferDialogOpen(true); }}
-                          >
-                            <ArrowRightLeft className="h-3 w-3" /> Transfer
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
+                              onClick={() => { setTransferStudent(s); setTransferTarget(""); setTransferDialogOpen(true); }}
+                            >
+                              <ArrowRightLeft className="h-3 w-3" /> Transfer
+                            </Button>
+                            {role === "admin" && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="gap-1"
+                                onClick={() => setStudentToDelete(s)}
+                              >
+                                <Trash2 className="h-3 w-3" /> Delete
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
@@ -322,6 +353,32 @@ const ClassesPage = () => {
           studentId={viewingStudent?.student_id ?? null}
           studentName={viewingStudent?.profiles?.full_name}
         />
+
+        {/* Delete Student Confirm */}
+        <AlertDialog open={!!studentToDelete} onOpenChange={(open) => { if (!open) setStudentToDelete(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete student record?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This permanently removes <strong>{studentToDelete?.profiles?.full_name || "this student"}</strong> and all associated data —
+                account, profile, enrollments, attendance, submissions, quiz attempts, fees and payments. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteStudentMutation.isPending}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteStudentMutation.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (studentToDelete?.student_id) deleteStudentMutation.mutate(studentToDelete.student_id);
+                }}
+              >
+                {deleteStudentMutation.isPending ? "Deleting..." : "Delete permanently"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Transfer Dialog */}
         <Dialog open={transferDialogOpen} onOpenChange={(open) => { setTransferDialogOpen(open); if (!open) { setTransferStudent(null); setTransferTarget(""); } }}>
