@@ -1135,6 +1135,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_student_record: {
+        Args: { _student_record_id: string }
+        Returns: undefined
+      }
       get_quiz_questions_for_student: {
         Args: { _quiz_id: string }
         Returns: {
@@ -1156,6 +1160,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      upsert_student_record: {
+        Args: { _class_id: string; _full_name: string; _student_id: string }
+        Returns: {
+          created: boolean
+          record_id: string
+        }[]
       }
     }
     Enums: {
