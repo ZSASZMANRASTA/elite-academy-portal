@@ -1,6 +1,5 @@
 import { useState } from "react";
 import * as XLSX from "xlsx";
-import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -31,8 +30,6 @@ interface RowResult {
   message?: string;
 }
 
-const EMAIL_DOMAIN = "students.adamsjunior.local";
-
 const normalizeKey = (k: string) =>
   k.toLowerCase().replace(/[\s_-]/g, "");
 
@@ -53,7 +50,6 @@ const BulkImportStudentsDialog = ({ open, onOpenChange, classId, className }: Pr
   const [parseError, setParseError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [results, setResults] = useState<RowResult[]>([]);
-  const [defaultPassword, setDefaultPassword] = useState("Student@2026");
 
   const reset = () => {
     setFile(null);
@@ -104,62 +100,17 @@ const BulkImportStudentsDialog = ({ open, onOpenChange, classId, className }: Pr
     for (const row of rows) {
       const full_name = `${row.first_name} ${row.second_name}`.trim() || row.student_id;
       try {
-        // Check if a profile with this student_id already exists
-        const { data: existing } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .eq("student_id", row.student_id)
-          .maybeSingle();
-
-        let userId: string;
-
-        if (existing) {
-          userId = existing.id;
-          // Update profile + ensure enrollment in this class + sync class label
-          await supabase
-            .from("profiles")
-            .update({ full_name, class: className })
-            .eq("id", userId);
-
-          const { data: enr } = await supabase
-            .from("class_enrollments")
-            .select("id")
-            .eq("student_id", userId)
-            .eq("class_id", classId)
-            .maybeSingle();
-          if (!enr) {
-            // remove other enrollments to keep one class
-            await supabase.from("class_enrollments").delete().eq("student_id", userId);
-            await supabase.from("class_enrollments").insert({ student_id: userId, class_id: classId });
-          }
-          out.push({ student_id: row.student_id, full_name, status: "updated" });
-        } else {
-          // Create a fresh auth user via signUp (no admin endpoint available client-side)
-          const tempClient = createClient(
-            import.meta.env.VITE_SUPABASE_URL,
-            import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
-          );
-          const email = `${row.student_id.toLowerCase().replace(/[^a-z0-9]/g, "")}@${EMAIL_DOMAIN}`;
-          const { data: signUp, error: signErr } = await tempClient.auth.signUp({
-            email,
-            password: defaultPassword,
-            options: { data: { full_name, role: "student" } },
-          });
-          if (signErr) throw signErr;
-          if (!signUp.user) throw new Error("No user returned");
-          userId = signUp.user.id;
-
-          // Update profile with student_id and class label
-          await supabase
-            .from("profiles")
-            .update({ student_id: row.student_id, full_name, class: className })
-            .eq("id", userId);
-
-          await supabase.from("class_enrollments").insert({ student_id: userId, class_id: classId });
-
-          out.push({ student_id: row.student_id, full_name, status: "created" });
-        }
+        const { data, error } = await supabase.rpc("upsert_student_record", {
+          _student_id: row.student_id,
+          _full_name: full_name,
+          _class_id: classId,
+        });
+        if (error) throw error;
+        out.push({
+          student_id: row.student_id,
+          full_name,
+          status: data?.[0]?.created ? "created" : "updated",
+        });
       } catch (e: any) {
         out.push({ student_id: row.student_id, full_name, status: "error", message: e.message });
       }
@@ -182,7 +133,7 @@ const BulkImportStudentsDialog = ({ open, onOpenChange, classId, className }: Pr
           <DialogTitle>Bulk Import Students — {className}</DialogTitle>
           <DialogDescription>
             Upload a CSV or Excel file with columns: <strong>Student ID</strong>, <strong>First Name</strong>, <strong>Second Name</strong>.
-            Existing students (matched by Student ID) will be updated; new ones get accounts created.
+            Existing records (matched by Student ID) will be updated; new records will be assigned to this class.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,18 +141,6 @@ const BulkImportStudentsDialog = ({ open, onOpenChange, classId, className }: Pr
           <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-1">
             <Download className="h-3.5 w-3.5" /> Download template (.xlsx)
           </Button>
-
-          <div className="space-y-2">
-            <Label>Default password for new accounts</Label>
-            <Input
-              value={defaultPassword}
-              onChange={(e) => setDefaultPassword(e.target.value)}
-              placeholder="Min 6 characters"
-            />
-            <p className="text-xs text-muted-foreground">
-              New students sign in with email <code>&lt;studentid&gt;@{EMAIL_DOMAIN}</code> and this password. They should change it after first login.
-            </p>
-          </div>
 
           <div className="space-y-2">
             <Label>Choose file</Label>
@@ -242,7 +181,7 @@ const BulkImportStudentsDialog = ({ open, onOpenChange, classId, className }: Pr
                 </table>
               </div>
               <p className="text-xs text-muted-foreground">{rows.length} row(s) ready to import.</p>
-              <Button onClick={runImport} disabled={importing || defaultPassword.length < 6} className="w-full gap-2">
+              <Button onClick={runImport} disabled={importing} className="w-full gap-2">
                 {importing ? <><Loader2 className="h-4 w-4 animate-spin" /> Importing...</> : <><Upload className="h-4 w-4" /> Import {rows.length} students</>}
               </Button>
             </>
