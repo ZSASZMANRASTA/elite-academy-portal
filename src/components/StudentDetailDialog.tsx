@@ -303,7 +303,7 @@ const StudentDetailDialog = ({ open, onOpenChange, studentId, studentName }: Pro
                     </div>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground">Account Created</p>
+                    <p className="text-xs text-muted-foreground">Record Added</p>
                     <p className="font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "—"}</p>
                   </div>
                 </div>
