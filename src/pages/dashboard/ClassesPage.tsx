@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,7 +23,7 @@ const ClassesPage = () => {
   const [classForm, setClassForm] = useState({ name: "", stream: "" });
   const [classDialogOpen, setClassDialogOpen] = useState(false);
   const [studentDialogOpen, setStudentDialogOpen] = useState(false);
-  const [studentForm, setStudentForm] = useState({ full_name: "", email: "", password: "", class_id: "" });
+  const [studentForm, setStudentForm] = useState({ student_id: "", full_name: "", class_id: "" });
   const [transferStudent, setTransferStudent] = useState<any>(null);
   const [transferTarget, setTransferTarget] = useState<string>("");
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
@@ -63,7 +62,7 @@ const ClassesPage = () => {
       const studentIds = enrollments.map((e) => e.student_id);
       const { data: profiles, error: profileErr } = await supabase
         .from("profiles")
-        .select("id, full_name, class, approved")
+        .select("id, full_name, student_id, class, approved")
         .in("id", studentIds);
       if (profileErr) throw profileErr;
 
@@ -115,42 +114,20 @@ const ClassesPage = () => {
 
   const createStudentMutation = useMutation({
     mutationFn: async (form: typeof studentForm) => {
-      const tempClient = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
-      );
-
-      const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: { data: { full_name: form.full_name, role: "student" } },
+      const { data, error } = await supabase.rpc("upsert_student_record", {
+        _student_id: form.student_id.trim(),
+        _full_name: form.full_name.trim(),
+        _class_id: form.class_id,
       });
-      if (signUpError) throw signUpError;
-      if (!signUpData.user) throw new Error("Failed to create user account");
-
-      const newUserId = signUpData.user.id;
-
-      const { error: enrollErr } = await supabase
-        .from("class_enrollments")
-        .insert({ student_id: newUserId, class_id: form.class_id });
-      if (enrollErr) throw enrollErr;
-
-      // Set profiles.class to the class name (+ stream if set) for fee synchronisation
-      const classObj = classes.find((c: any) => c.id === form.class_id);
-      if (classObj) {
-        const className = classObj.stream ? `${classObj.name} ${classObj.stream}` : classObj.name;
-        await supabase.from("profiles").update({ class: className }).eq("id", newUserId);
-      }
-
-      return newUserId;
+      if (error) throw error;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["class-students", selectedClass] });
       queryClient.invalidateQueries({ queryKey: ["classes"] });
-      setStudentForm({ full_name: "", email: "", password: "", class_id: "" });
+      setStudentForm({ student_id: "", full_name: "", class_id: "" });
       setStudentDialogOpen(false);
-      toast.success("Student created and enrolled successfully");
+      toast.success("Student record saved and assigned");
     },
     onError: (error: any) => toast.error(`Failed to create student: ${error.message}`),
   });
@@ -188,12 +165,10 @@ const ClassesPage = () => {
 
   const deleteStudentMutation = useMutation({
     mutationFn: async (studentId: string) => {
-      const { data, error } = await supabase.functions.invoke("delete-student", {
-        body: { student_id: studentId },
+      const { error } = await supabase.rpc("delete_student_record", {
+        _student_record_id: studentId,
       });
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["class-students", selectedClass] });
@@ -236,30 +211,30 @@ const ClassesPage = () => {
             <Dialog open={studentDialogOpen} onOpenChange={setStudentDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => setStudentForm((p) => ({ ...p, class_id: selectedClass }))}>
-                  <UserPlus className="h-4 w-4 mr-2" /> Create & Assign Student
+                  <UserPlus className="h-4 w-4 mr-2" /> Add & Assign Student
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Create Student Account</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Add Student Record</DialogTitle></DialogHeader>
                 <div className="space-y-4">
+                  <div>
+                    <Label>Student ID</Label>
+                    <Input
+                      value={studentForm.student_id}
+                      onChange={(e) => setStudentForm((p) => ({ ...p, student_id: e.target.value }))}
+                      placeholder="e.g. ADM001"
+                    />
+                  </div>
                   <div>
                     <Label>Full Name</Label>
                     <Input value={studentForm.full_name} onChange={(e) => setStudentForm((p) => ({ ...p, full_name: e.target.value }))} />
                   </div>
-                  <div>
-                    <Label>Email</Label>
-                    <Input type="email" value={studentForm.email} onChange={(e) => setStudentForm((p) => ({ ...p, email: e.target.value }))} />
-                  </div>
-                  <div>
-                    <Label>Password</Label>
-                    <Input type="password" value={studentForm.password} onChange={(e) => setStudentForm((p) => ({ ...p, password: e.target.value }))} />
-                  </div>
                   <Button
                     className="w-full"
-                    disabled={createStudentMutation.isPending}
+                    disabled={createStudentMutation.isPending || !studentForm.student_id.trim() || !studentForm.full_name.trim()}
                     onClick={() => createStudentMutation.mutate(studentForm)}
                   >
-                    {createStudentMutation.isPending ? "Creating..." : "Create Student"}
+                    {createStudentMutation.isPending ? "Saving..." : "Save Student"}
                   </Button>
                 </div>
               </DialogContent>
@@ -305,7 +280,10 @@ const ClassesPage = () => {
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => { setViewingStudent(s); setStudentDetailOpen(true); }}
                     >
-                      <TableCell className="font-medium">{s.profiles?.full_name || "—"}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{s.profiles?.full_name || "—"}</div>
+                        {s.profiles?.student_id && <div className="text-xs text-muted-foreground">{s.profiles.student_id}</div>}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={s.profiles?.approved ? "default" : "secondary"}>
                           {s.profiles?.approved ? "Approved" : "Pending"}
@@ -360,8 +338,8 @@ const ClassesPage = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete student record?</AlertDialogTitle>
               <AlertDialogDescription>
-                This permanently removes <strong>{studentToDelete?.profiles?.full_name || "this student"}</strong> and all associated data —
-                account, profile, enrollments, attendance, submissions, quiz attempts, fees and payments. This cannot be undone.
+                This permanently removes <strong>{studentToDelete?.profiles?.full_name || "this student"}</strong> and all associated records —
+                profile, class assignment, attendance, submissions, quiz attempts, fees and payments. This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
